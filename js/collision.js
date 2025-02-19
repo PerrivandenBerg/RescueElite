@@ -15,5 +15,3 @@ class Collision {
         );
     }
 }
-
-console.log("collision loaded")

@@ -20,5 +20,3 @@ class Door extends Collision {
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
-
-console.log("door")

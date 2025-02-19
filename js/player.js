@@ -2,21 +2,37 @@
 
 class Player extends Collision {
     constructor() {
-        super(0, 0, 32, 32);
+        super(0, 0, 20, 20);
         this.x = 0;
         this.y = 0;
         this.x_prev = this.x;
         this.y_prev = this.y;
-        this.width = 32;
-        this.height = 32;
+        this.width = 20;
+        this.height = 20;
         this.color = 'grey';
         this.speed = 2;
+
+        let body_list = this.snake_body(40)
+        this.body = new Creature(this.x, this.y, body_list, 4, Math.PI / 8);
 
         this.inventory_size = 0;
         this.inventory = [];
         this.curr_key = -1;
         this.max_hp = 3;
         this.hp = this.max_hp;
+    }
+
+    snake_body(i) {
+        let list = []
+        for (let j = 0; j < i; j++) {
+            if (j === 0)
+                list.push(9.5);
+            else if (j === 1)
+                list.push(10.0);
+            else
+                list.push(8.0 - j / 8.0);
+        }
+        return list;
     }
 
     update(key_board) {
@@ -39,11 +55,14 @@ class Player extends Collision {
 
         this.x = this.x + moveX * this.speed;
         this.y = this.y + moveY * this.speed;
+
+        this.body.move(this.x + this.width/2, this.y + this.width/2);
     }
 
     set_position(x, y) {
         this.x = x;
         this.y = y;
+        this.body.set_position(x + this.width/2, y + this.width/2);
     }
 
     handle_collision(other) {
@@ -94,7 +113,7 @@ class Player extends Collision {
 
     set_key(key) {
         // Already has key? Do nothing.
-        if (key in this.inventory) {
+        if (this.inventory.includes(key)) {
             this.curr_key = key;
             return true;
         }
@@ -105,12 +124,13 @@ class Player extends Collision {
             return true;
         }
         // Has no slots left? Replace current color.
-        const index = this.inventory.indexOf(this.curr_key);
-        if (index == -1)
-            return false;
-        this.inventory[index] = key;
-        this.curr_key = key;
-        return true;
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i] === this.curr_key) {
+                this.inventory[i] = key;
+                return true;
+            }
+        }
+        return false;
     }
 
     set_inventory_size(size) {
@@ -125,8 +145,8 @@ class Player extends Collision {
             this.color = 'blue';
         if (this.curr_key == 2) // green
             this.color = 'green';
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        //ctx.fillStyle = this.color;
+        //ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.body.draw(ctx, this.color);
     }
 }
-console.log("player loaded")

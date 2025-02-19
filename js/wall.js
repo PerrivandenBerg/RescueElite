@@ -12,4 +12,3 @@ class Wall extends Collision {
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
-console.log("wall loaded")

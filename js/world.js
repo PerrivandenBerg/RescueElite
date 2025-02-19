@@ -114,5 +114,3 @@ class World {
 
     }
 }
-
-console.log("world loaded")

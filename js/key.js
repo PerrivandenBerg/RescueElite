@@ -21,4 +21,3 @@ class Key extends Collision {
         ctx.fill();
     }
 }
-console.log("key loaded")
