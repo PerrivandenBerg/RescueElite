@@ -29,15 +29,21 @@ class Player extends Collision {
                 list.push(9.5);
             else if (j === 1)
                 list.push(10.0);
+            else if (j === 2)
+                list.push(9.2);
+            else if (j === 3)
+                list.push(8.5);
             else
                 list.push(8.0 - j / 8.0);
         }
         return list;
     }
 
-    update(key_board) {
+    update(key_board, deltaTime) {
         let moveX = 0;
         let moveY = 0;
+
+        this.body.update(deltaTime);
 
         if (key_board['a']) moveX -= 1;
         if (key_board['d']) moveX += 1;
@@ -56,13 +62,13 @@ class Player extends Collision {
         this.x = this.x + moveX * this.speed;
         this.y = this.y + moveY * this.speed;
 
-        this.body.move(this.x + this.width/2, this.y + this.width/2);
+        this.body.move(this.x + this.width / 2, this.y + this.width / 2);
     }
 
     set_position(x, y) {
         this.x = x;
         this.y = y;
-        this.body.set_position(x + this.width/2, y + this.width/2);
+        this.body.set_position(x + this.width / 2, y + this.width / 2);
     }
 
     handle_collision(other) {
@@ -145,6 +151,7 @@ class Player extends Collision {
             this.color = 'blue';
         if (this.curr_key == 2) // green
             this.color = 'green';
+        this.body.set_color(this.color);
         //ctx.fillStyle = this.color;
         //ctx.fillRect(this.x, this.y, this.width, this.height);
         this.body.draw(ctx, this.color);

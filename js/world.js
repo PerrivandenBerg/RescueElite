@@ -68,7 +68,7 @@ class World {
         }
     }
 
-    update(key_board) {
+    update(key_board, deltaTime) {
 
         // Handle inputs.
         if (key_board['h'])
@@ -77,12 +77,14 @@ class World {
             this.load_from_file("w2");
         if (key_board['k'])
             this.load_from_file("w3");
+        if (key_board['l'])
+            this.load_from_file("w4");
         if (key_board['r'])
             this.load_from_file(this.curr_world);
 
 
         // Update others.
-        this.player.update(key_board);
+        this.player.update(key_board, deltaTime);
 
         this.walls.forEach(wall => {
             if (this.player.check_collision(wall))

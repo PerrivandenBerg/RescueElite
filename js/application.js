@@ -5,14 +5,16 @@ const ctx = canvas.getContext("2d");
 canvas.width = 800;
 canvas.height = 600;
 
+let lastTime = 0;
+
 const world = new World();
 
 const key_board = {};
 window.addEventListener("keydown", (e) => key_board[e.key] = true);
 window.addEventListener("keyup", (e) => key_board[e.key] = false);
 
-function update() {
-    world.update(key_board);
+function update(deltaTime) {
+    world.update(key_board, deltaTime);
 }
 
 function render() {
@@ -22,8 +24,10 @@ function render() {
     world.draw(ctx);
 }
 
-function gameLoop() {
-    update();
+function gameLoop(time) {
+    let deltaTime = (time - lastTime) / 1000; // Convert ms to seconds
+    lastTime = time;
+    update(deltaTime);
     render();
     requestAnimationFrame(gameLoop);
 }

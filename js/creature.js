@@ -45,6 +45,11 @@ class Creature {
         this.joints.push(new Vector(x, y));
         this.angles.push(0);
 
+        this.current_colors = new Array(sizes.length).fill("gray");  // Default color
+        this.targetColor = "gray";
+        this.colorTransitionTimers = new Array(sizes.length).fill(0);
+        this.transitionSpeed = 0.02; // Speed of interpolation
+
         for (let i = 1; i < sizes.length; i++) {
             this.joints.push(this.joints[i - 1].add(new Vector(0, this.segmentDistance)));
             this.angles.push(0);
@@ -92,9 +97,25 @@ class Creature {
         return joint.y + Math.sin(angle) * (this.sizes[index] + lengthOffset);
     }
 
-    draw(ctx, color) {
+    set_color(newColor) {
+        if (this.targetColor != newColor) {
+            this.targetColor = newColor;
+            this.colorTransitionTimers = this.colorTransitionTimers.map((_, i) => i * 0.01); // Delay per segment
+        }
+    }
+
+    update(deltaTime) {
+        for (let i = 0; i < this.joints.length; i++) {
+            if (this.colorTransitionTimers[i] > 0) {
+                this.colorTransitionTimers[i] -= deltaTime; // Countdown delay
+                continue;
+            }
+            this.current_colors[i] = this.targetColor;
+        }
+    }
+
+    draw(ctx) {
         // Draw outline.
-        ctx.save();
         let width = 2;
         ctx.fillStyle = "black";
         for (let i = 0; i < this.joints.length; i++) {
@@ -104,14 +125,35 @@ class Creature {
         }
 
         // Draw body.
-        ctx.fillStyle = color;
         for (let i = 0; i < this.joints.length; i++) {
+            ctx.fillStyle = this.current_colors[i];
             ctx.beginPath();
             ctx.arc(this.joints[i].x, this.joints[i].y, this.sizes[i], 0, Math.PI * 2);
             ctx.fill();
         }
-        ctx.restore();
+
+        // Draw eyes.
+        ctx.fillStyle = "white";
+        let head = this.joints[0];  // First joint (head)
+        let next = this.joints[1];  // Second joint to get direction
+        let angle = Math.atan2(next.y - head.y, next.x - head.x); // Get head's rotation
+
+        let eyeOffsetX = Math.cos(angle + Math.PI / 2) * this.sizes[0] * 0.5;
+        let eyeOffsetY = Math.sin(angle + Math.PI / 2) * this.sizes[0] * 0.5;
+
+        let eyeSize = this.sizes[0] * 0.3; // Scale eyes to head size
+
+        // Left eye.
+        ctx.beginPath();
+        ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Right eye.
+        ctx.beginPath();
+        ctx.arc(head.x - eyeOffsetX, head.y - eyeOffsetY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
     }
+
 
 
 }
