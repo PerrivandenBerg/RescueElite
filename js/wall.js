@@ -1,14 +1,10 @@
 class Wall extends Collision {
     constructor(x, y) {
-        super(x, y, 32, 32);
-        this.x = x;
-        this.y = y;
-        this.width = 32;
-        this.height = 32;
+        super(x, y, 8, 8);
     }
     
     draw(ctx) {
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = 'purple';
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
