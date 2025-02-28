@@ -1,7 +1,11 @@
 class Button extends Collision {
-    constructor(x, y, id) {
-        super(x, y, 32, 8);
+    constructor(x, y, id, coll_manager, world_objs) {
+        super(x, y, 32, 8, coll_manager, world_objs);
         this.id = id;
+    }
+
+    update() {
+        
     }
 
     draw(ctx) {

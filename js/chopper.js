@@ -7,25 +7,12 @@ const FLY = 0;
 const LAND = 1;
 const OFF = 2;
 const CRASH = 3;
-const GO = 4;
-
-// Collision Types
-const SAFE = 0;
-const LAZER = 1;
-const ROCKET = 2;
-const BULLET = 3;
-const WALL = 4;
-const FUEL_EMPTY = 5;
-const FLOOR = 6;
-const PERSON = 7;
-const FUEL_CLOSED = 8;
-const REFUEL = 9;
 
 class Chopper extends Collision {
-    constructor() {
-        super(0, 0, 32, 18); // 32 x 18
-        this.x = 50;
-        this.y = 50;
+    constructor(x, y, coll_manager, world_objs) {
+        super(x, y, 32, 18, coll_manager, world_objs); // 32 x 18
+        this.x = x;
+        this.y = y;
 
         this.angle = 0;
         this.speed = 0;
@@ -45,30 +32,13 @@ class Chopper extends Collision {
         this.hp = this.max_hp;
 
         // Shooting
-        this.bullets = [];
         this.shoot_delay = 0;
 
         this.status = FLY;
-        this.col = SAFE;
         this.controls = { left: false, right: false, up: false, down: false, fire: false };
 
         window.addEventListener("keydown", (e) => this.handle_key(e, true));
         window.addEventListener("keyup", (e) => this.handle_key(e, false));
-    }
-
-    set_position(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    reset() {
-        this.hp = this.max_hp;
-        this.draw_color = this.color;
-        this.x_vec = 0;
-        this.y_vec = 0;
-        this.status = FLY;
-        this.shoot_delay = 0;
-        this.bullets = [];
     }
 
     handle_key(event, isPressed) {
@@ -83,6 +53,7 @@ class Chopper extends Collision {
     }
 
     update(deltaTime) {
+
         this.sprite_timer += deltaTime * 10.0;
         if (this.sprite_timer >= 2)
             this.sprite_timer = 0;
@@ -103,13 +74,6 @@ class Chopper extends Collision {
         }
 
 
-
-        // Controlls
-
-        // if (this.status === GO) {
-        //     this.fuel = Math.max(0, this.fuel - 0.1);
-        //     if (this.fuel === 0) this.status = FLY;
-        // }
 
         if (this.status !== CRASH) {
             if (!this.controls.up && !this.controls.down && !this.controls.left
@@ -147,28 +111,18 @@ class Chopper extends Collision {
         if (this.shoot_delay > 0)
             this.shoot_delay -= deltaTime * 5.0;
 
-        for (let b = 0; b < this.bullets.length; b++) {
-            if (this.bullets[b].delete)
-                this.bullets.splice(b, 1);
-        }
-
         if (this.controls.fire && this.shoot_delay <= 0 && this.status === FLY) {
             this.shoot_delay = 5;
             if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards
-                let bull1 = new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 + 2, 4 * dir, 0, PLAYER);
-                let bull2 = new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 - 2, 4 * dir, 0, PLAYER);
-                this.bullets.push(bull1);
-                this.bullets.push(bull2);
+                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
             }
             else if (this.angle > 7) { // Shoot down forwards
-                let bull1 = new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 4, 3 * dir, 1, PLAYER);
-                let bull2 = new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 0, 3 * dir, 1, PLAYER);
-                this.bullets.push(bull1);
-                this.bullets.push(bull2);
+                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
             }
             else { // Shoot down
-                let bull = new Bullet(this.x + this.width / 2, this.y + this.height - 6, 0, 3, PLAYER);
-                this.bullets.push(bull);
+                new Bullet(this.x + this.width / 2, this.y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
             }
         }
 
@@ -193,67 +147,57 @@ class Chopper extends Collision {
         }
 
         this.angle = this.angle * dir;
+        this.move(this.x, this.y);
+
+        this.handle_collision();
+
+
     }
 
 
-    handle_collision(other) {
-        if (other instanceof Wall) {
-            this.crash(other.x + other.width / 2, other.y + other.height / 2);
-        }
-        if (other instanceof Door) {
-            this.crash(other.x + other.width / 2, other.y + other.height / 2);
-        }
-        if (other instanceof Break) {
-            this.crash(other.x + other.width / 2, other.y + other.height / 2);
-        }
-        if (other instanceof Platform) {
-            // Check if fully on platform
-            if (this.y + this.height / 2 < other.y + 2 &&
-                this.x >= other.x - 20 && this.x + this.width <= other.x + other.width + 20
-            ) {
-                this.status = LAND;
-                if (!(this.controls.up && this.fuel !== 0))
-                    this.y = other.y - this.height + 2;
-            } else {
-                this.crash((this.x + this.width / 2), other.y + other.height / 2);
+    handle_collision() {
+
+        let others = this.check_collisions();
+
+        others.forEach(other => {
+            if (other instanceof Wall) {
+                this.crash(other.x + other.width / 2, other.y + other.height / 2);
             }
-        }
-        if (other instanceof Button) {
-            if (other.id !== BUTTON_PRESSED) {
-                BUTTON_PRESSED = other.id;
+            if (other instanceof Door) {
+                if (BUTTON_PRESSED !== other.id)
+                this.crash(other.x + other.width / 2, other.y + other.height / 2);
             }
-        }
+            if (other instanceof Break) {
+                this.crash(other.x + other.width / 2, other.y + other.height / 2);
+            }
+            if (other instanceof Platform) {
+                // Check if fully on platform
+                if (this.y + this.height / 2 < other.y + 2 &&
+                    this.x >= other.x - 20 && this.x + this.width <= other.x + other.width + 20
+                ) {
+                    this.status = LAND;
+                    if (!(this.controls.up && this.fuel !== 0)) {
+                        this.y = other.y - this.height + 2;
+                        this.move(this.x, this.y);
+                    }
+                } else {
+                    this.crash((this.x + this.width / 2), other.y + other.height / 2);
+                }
+            }
+            if (other instanceof Button) {
+                if (other.id !== BUTTON_PRESSED) {
+                    BUTTON_PRESSED = other.id;
+                }
+            }
+
+        });
+
     }
 
-    // check_collisions() {
-    //     if (this.col !== SAFE) {
-    //         switch (this.col) {
-    //             case LAZER:
-    //             case ROCKET:
-    //             case BULLET:
-    //             case WALL:
-    //             case FUEL_EMPTY:
-    //                 this.crash();
-    //                 break;
-    //             case FLOOR:
-    //                 if (!this.check_land()) this.crash();
-    //                 else this.land();
-    //                 break;
-    //             case PERSON:
-    //                 this.pick_up_person();
-    //                 break;
-    //             case FUEL_CLOSED:
-    //                 this.open_fuel();
-    //                 break;
-    //             case REFUEL:
-    //                 this.add_fuel();
-    //                 break;
-    //         }
-    //     }
-    // }
 
     hover(deltaTime) {
         this.y += deltaTime * gobalGravity;
+        this.move(this.x, this.y);
     }
 
     crash(x, y) {
@@ -284,10 +228,6 @@ class Chopper extends Collision {
     // }
 
     draw(ctx) {
-
-        // Draw Bullets
-        this.bullets.forEach(obj => { obj.draw(ctx); });
-
 
         // Draw Chopper
         let sprite_animation = "_1"; // Which frame of the animation to use.

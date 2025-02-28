@@ -3,9 +3,12 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-var SCALE = 3;
-canvas.width = 300 * SCALE;
-canvas.height = 200 * SCALE;
+var SCALE = 1;
+
+canvas.width = 400 * window.devicePixelRatio;
+canvas.height = 200 * window.devicePixelRatio;
+console.log(window.devicePixelRatio);
+ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
 var gobalGravity = 9.8;
 
@@ -18,7 +21,9 @@ function update(deltaTime) {
 }
 
 function render() {
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
 
     world.draw(ctx);
 }

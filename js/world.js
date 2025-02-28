@@ -7,21 +7,14 @@ var COLORS = { "0": "blue", "1": "red" };
 
 class World {
     constructor() {
+
+        this.cman = new CollisionManager(); // Collision Manager
+        this.wobjs = [];  // World Objects
+
+        this.chopper;
+
         this.curr_world = "";
-        this.chopper = new Chopper();
-        this.walls = [];
-        this.doors = [];
-        this.breaks = [];
-        this.buttons = [];
-        this.platforms = [];
         this.last_level_loaded = "";
-        // this.chopper.reset();
-        // this.chopper.set_position(100, 100);
-        // this.walls = [];
-        // this.keys = [];
-        // this.hearts = [];
-        // if (!this.load_level_from_url())
-        //     this.load_from_file("w1");
 
         this.load_from_file("../levels/level.json");
     }
@@ -31,14 +24,22 @@ class World {
     }
 
     load_test_level() {
+
         BUTTON_PRESSED = -1;
-        this.chopper.reset();
-        this.chopper.set_position(50, 50);
-        this.walls = [new Wall(100, 100), new Wall(150, 100)];
-        this.doors = [new Door(50, 120, 0), new Door(50, 128, 0)];
-        this.breaks = [new Break(100, 128)];
-        this.platforms = [new Platform(200, 100), new Platform(280, 100)];
-        this.buttons = [new Button(284, 92, 0)];
+
+        this.cman.reset();
+        this.wobjs = [];
+
+        this.chopper = new Chopper(50, 50, this.cman, this.wobjs);
+
+        new Wall(100, 100, this.cman, this.wobjs);
+        new Wall(150, 100, this.cman, this.wobjs);
+        new Door(50, 120, 0, this.cman, this.wobjs);
+        new Door(50, 128, 0, this.cman, this.wobjs);
+        new Break(100, 128, this.cman, this.wobjs);
+        new Platform(200, 100, this.cman, this.wobjs);
+        new Platform(280, 100, this.cman, this.wobjs);
+        new Button(284, 92, 0, this.cman, this.wobjs);
     }
 
     // Loads the world from JSON formatting in a given file.
@@ -51,15 +52,18 @@ class World {
             let text = await response.text()
             let data = JSON.parse(text);
 
-            BUTTON_PRESSED = -1;
-            this.chopper.reset();
-            this.chopper.set_position(data.chopper.x, data.chopper.y);
+            this.cman.reset();
+            this.wobjs = [];
 
-            this.walls = data.walls.map(obj => new Wall(obj.x, obj.y));
-            this.doors = data.doors.map(obj => new Door(obj.x, obj.y, obj.id));
-            this.breaks = data.breaks.map(obj => new Break(obj.x, obj.y));
-            this.platforms = data.platforms.map(obj => new Platform(obj.x, obj.y));
-            this.buttons = data.buttons.map(obj => new Button(obj.x, obj.y, 0));
+
+            BUTTON_PRESSED = -1;
+            this.chopper = new Chopper(data.chopper.x, data.chopper.y, this.cman, this.wobjs);
+
+            data.walls.forEach(obj => new Wall(obj.x, obj.y, this.cman, this.wobjs));
+            data.doors.forEach(obj => new Door(obj.x, obj.y, obj.id, this.cman, this.wobjs));
+            data.breaks.forEach(obj => new Break(obj.x, obj.y, this.cman, this.wobjs));
+            data.platforms.forEach(obj => new Platform(obj.x, obj.y, this.cman, this.wobjs));
+            data.buttons.forEach(obj => new Button(obj.x, obj.y, obj.id, this.cman, this.wobjs));
 
             this.last_level_loaded = filename;
 
@@ -72,63 +76,9 @@ class World {
     update(deltaTime) {
 
         // Breaking and deleting blocks.
-        this.breaks.forEach(obj => { obj.update(deltaTime); });
-        for (let b = 0; b < this.breaks.length; b++) {
-            if (this.breaks[b].delete)
-                this.breaks.splice(b, 1);
-        }
+        this.wobjs.forEach(obj => { obj.update(deltaTime); });
 
-        // Update others.
-        this.chopper.update(deltaTime);
-
-        this.walls.forEach(obj => {
-            if (this.chopper.check_collision(obj))
-                this.chopper.handle_collision(obj);
-        });
-        this.doors.forEach(obj => {
-            if (this.chopper.check_collision(obj) && BUTTON_PRESSED !== obj.id) {
-                this.chopper.handle_collision(obj);
-            }
-        });
-        this.breaks.forEach(obj => {
-            if (this.chopper.check_collision(obj))
-                this.chopper.handle_collision(obj);
-        });
-        this.platforms.forEach(obj => {
-            if (this.chopper.check_collision(obj))
-                this.chopper.handle_collision(obj);
-        });
-        this.buttons.forEach(obj => {
-            if (this.chopper.check_collision(obj))
-                this.chopper.handle_collision(obj);
-        });
-
-        // Collision of chopper bullets, TODO: Improve!
-        this.chopper.bullets.forEach(obj2 => {
-            obj2.update(deltaTime);
-            this.walls.forEach(obj => {
-                if (obj2.check_collision(obj))
-                    obj2.handle_collision(obj);
-            });
-            this.doors.forEach(obj => {
-                if (obj2.check_collision(obj) && !obj.open) {
-                    obj2.handle_collision(obj);
-                }
-            });
-            this.breaks.forEach(obj => {
-                if (obj2.check_collision(obj))
-                    obj2.handle_collision(obj);
-            });
-            this.platforms.forEach(obj => {
-                if (obj2.check_collision(obj))
-                    obj2.handle_collision(obj);
-            });
-
-        });
-
-
-
-        if (this.chopper.hp <= 0 && this.chopper.status !== CRASH) {
+        if (typeof this.chopper !== 'undefined' && this.chopper.hp <= 0 && this.chopper.status !== CRASH) {
             this.reset_level();
         }
 
@@ -139,13 +89,7 @@ class World {
         ctx.fillStyle = 'black'; // Draw a background
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        this.walls.forEach(obj => { obj.draw(ctx); });
-        this.doors.forEach(obj => { obj.draw(ctx); });
-        this.breaks.forEach(obj => { obj.draw(ctx); });
-        this.platforms.forEach(obj => { obj.draw(ctx); });
-        this.buttons.forEach(obj => { obj.draw(ctx); });
-
-        this.chopper.draw(ctx);
+        this.wobjs.forEach(obj => { obj.draw(ctx); });
 
         // TODO: Draw other objects
 

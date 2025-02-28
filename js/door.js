@@ -1,8 +1,11 @@
 class Door extends Collision {
-    constructor(x, y, id) {
-        super(x, y, 8, 8);
+    constructor(x, y, id, coll_manager, world_objs) {
+        super(x, y, 8, 8, coll_manager, world_objs);
+        this.id = id;
+    }
 
-        this.id = 0;
+    update() {
+
     }
 
     draw(ctx) {

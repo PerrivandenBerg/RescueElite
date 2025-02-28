@@ -1,7 +1,6 @@
 class Break extends Collision {
-    constructor(x, y) {
-        super(x, y, 8, 8);
-        this.delete = false;  // Used to delete this object.
+    constructor(x, y, coll_manager, world_objs) {
+        super(x, y, 8, 8, coll_manager, world_objs);
         this.delay = 0;
         this.breaking = false;
     }
@@ -10,7 +9,7 @@ class Break extends Collision {
         if (this.delay > 0)
             this.delay -= deltaTime * 10.0;
         if (this.delay <= 0 && this.breaking)
-            this.delete = true;
+            this.delete();
     }
 
     break() {
