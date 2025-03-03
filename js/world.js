@@ -16,7 +16,7 @@ class World {
         this.curr_world = "";
         this.last_level_loaded = "";
 
-        this.load_from_file("../levels/level.json");
+        this.load_from_file("../levels/level2.json");
     }
 
     reset_level() {
@@ -44,6 +44,7 @@ class World {
 
     // Loads the world from JSON formatting in a given file.
     async load_from_file(filename) {
+        this.last_level_loaded = filename;
         try {
             const response = await fetch(filename);
             if (!response.ok) {
@@ -64,8 +65,11 @@ class World {
             data.breaks.forEach(obj => new Break(obj.x, obj.y, this.cman, this.wobjs));
             data.platforms.forEach(obj => new Platform(obj.x, obj.y, this.cman, this.wobjs));
             data.buttons.forEach(obj => new Button(obj.x, obj.y, obj.id, this.cman, this.wobjs));
+            data.tanks.forEach(obj => new Tank(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
+            data.drones.forEach(obj => new Drone(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
+            data.enemy_choppers.forEach(obj => new EnemyChopper(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
+            data.persons.forEach(obj => new Person(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
 
-            this.last_level_loaded = filename;
 
         } catch (error) {
             console.error("Error loading level: ", error);

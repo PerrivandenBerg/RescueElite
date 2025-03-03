@@ -1,24 +1,35 @@
 // Perri van den Berg (2025)
 
-// Shooter types:
-const PLAYER = 0;
-const ENEMY = 1;
-
-class Bullet extends Collision {
-    constructor(x, y, x_vec, y_vec, shooter, cman, wobjs) {
+class Rocket extends Collision {
+    constructor(x, y, x_vec, y_vec, cman, wobjs, player) {
         super(x, y, 2, 2, cman, wobjs);
         this.x_vec = x_vec;
         this.y_vec = y_vec;
-        this.shooter = shooter;
+        this.player = player;
+        this.fly_time = 4;
     }
 
     explode() {
-        new Explosion(this.x, this.y, 8, this.wobjs);
+        // TODO: Animation
+        new Explosion(this.x, this.y, 12, this.wobjs);
         this.delete();
     }
 
-    update() {
+    update(deltaTime) {
+        this.fly_time -= deltaTime;
+
         let new_x = this.x, new_y = this.y;
+
+        this.y_vec += 0.02;
+
+        if (this.fly_time > 0) {
+            let py = this.player.y + this.player.height / 2;
+            if (new_y > py)
+                new_y -= 0.5;
+            else if (new_y < py - 10)
+                new_y += 0.5;
+        }
+
         if (this.x_vec > 0.1 || this.x_vec < -0.1)
             new_x += this.x_vec;
 
@@ -36,21 +47,11 @@ class Bullet extends Collision {
         others.forEach(other => {
             if (other instanceof Wall || other instanceof Platform ||
                 other instanceof Button || (other instanceof Door && other.id !== BUTTON_PRESSED) ||
-                other instanceof Platform
+                other instanceof Platform || other instanceof Break
             ) {
                 this.explode();
             }
-            if (other instanceof Break || other instanceof Drone || other instanceof Tank
-            ) {
-                if (this.shooter === PLAYER) {
-                    this.explode();
-                    other.explode();
-                }
-            }
-
         });
-
-
     }
 
 
@@ -58,8 +59,11 @@ class Bullet extends Collision {
 
         // TODO: Colors
 
-        ctx.fillStyle = 'white';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        let img = "rocket.png";
+        if (this.x_vec < 0)
+            img = "rocket_flip.png";
+
+        tint_image(ctx, load_sprite(img), 'blue', this.x + 1, this.y + 1);
 
     }
 }

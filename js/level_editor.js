@@ -4,7 +4,7 @@ class LevelEditor {
         this.ctx = this.canvas.getContext("2d", { alpha: false });
         this.ctx.imageSmoothingEnabled = false;
         this.gridSize = 8;
-        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [] };
+        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [], tanks: [], drones: [], enemy_choppers: [] };
         this.selectedType = "wall";
         this.init_ui();
         this.canvas.addEventListener("click", (e) => this.place_object(e));
@@ -19,6 +19,9 @@ class LevelEditor {
             <button onclick="editor.select_type('wall')">Wall</button>
             <button onclick="editor.select_type('door')">Door</button>
             <button onclick="editor.select_type('break')">Breakable</button>
+            <button onclick="editor.select_type('tank')">Tank</button>
+            <button onclick="editor.select_type('drone')">Drone</button>
+            <button onclick="editor.select_type('enemy_chopper')">Enemy Chopper</button>
             <button onclick="editor.select_type('platform')">Platform</button>
             <button onclick="editor.select_type('button')">Button</button>
             <button onclick="editor.save_level()">Save</button>
@@ -26,7 +29,7 @@ class LevelEditor {
             <button onclick="editor.load_from_file()">Load</button>
         `;
         document.body.appendChild(controls);
-        document.getElementById("fileInput").addEventListener("change", (e) => this.loadFromFile(e));
+        document.getElementById("fileInput").addEventListener("change", (e) => this.load_from_file(e));
     }
 
     select_type(type) {
@@ -46,7 +49,7 @@ class LevelEditor {
             if (index > -1) {
                 list.splice(index, 1);
             } else {
-                list.push({ x, y, id: this.selectedType === "door" ? Date.now() : undefined });
+                list.push({ x, y, id: (this.selectedType === "door" || this.selectedType === "button")? 0 : undefined });
             }
         }
         this.draw();
@@ -62,6 +65,9 @@ class LevelEditor {
         this.objects.breaks.forEach(b => this.draw_rect(b, 8, 8, "red"));
         this.objects.platforms.forEach(p => this.draw_rect(p, 48, 8, "green"));
         this.objects.buttons.forEach(b => this.draw_rect(b, 40, 8, "orange"));
+        this.objects.drones.forEach(b => this.draw_rect(b, 8, 8, "white"));
+        this.objects.tanks.forEach(b => this.draw_rect(b, 24, 16, "white"));
+        this.objects.enemy_choppers.forEach(b => this.draw_rect(b, 32, 18, "white"));
     }
 
     draw_grid() {

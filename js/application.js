@@ -10,7 +10,7 @@ canvas.height = 200 * window.devicePixelRatio;
 console.log(window.devicePixelRatio);
 ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-var gobalGravity = 9.8;
+var globalGravity = 9.8;
 
 let lastTime = 0;
 
@@ -78,29 +78,58 @@ async function preload_sprites(paths) {
 }
 
 
+// Convert hex colors to RGB.
+function hex_to_rgb(hex) {
+    let bigint = parseInt(hex.slice(1), 16);
+    return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+    };
+}
+
+// Function to convert color names or hex to RGB.
+function color_to_rgb(color) {
+    let ctxTemp = document.createElement("canvas").getContext("2d");
+    ctxTemp.fillStyle = color;
+    return hex_to_rgb(ctxTemp.fillStyle);
+}
 
 // Tints an image to another color and draws it.
+// Only replaces the color "#FFFFFF" or rgb(255, 255, 255) in the image.
 function tint_image(ctx, image, color, x, y) {
     let off = document.createElement("canvas");
     off.width = image.width;
     off.height = image.height;
     let ctx2 = off.getContext("2d");
 
-    // Draw original image
+    // Draw original image.
     ctx2.drawImage(image, 0, 0);
 
-    // Apply tint but keep transparency
-    ctx2.globalCompositeOperation = "source-atop";
-    ctx2.fillStyle = color;
-    ctx2.fillRect(0, 0, image.width, image.height);
-    ctx2.globalCompositeOperation = "destination-in"; // Keep original alpha
-    ctx2.drawImage(image, 0, 0);
+    // Get image data.
+    let imageData = ctx2.getImageData(0, 0, image.width, image.height);
+    let data = imageData.data;
 
-    ctx.globalCompositeOperation = "source-over"; // Reset composite mode
+    let new_rgb = color_to_rgb(color);
 
-    ctx.drawImage(off, x, y, image.width, image.height);
+    for (let i = 0; i < data.length; i += 4) {
+        if (
+            data[i] === 255 &&
+            data[i + 1] === 255 &&
+            data[i + 2] === 255
+        ) {
+            data[i] = new_rgb.r;
+            data[i + 1] = new_rgb.g;
+            data[i + 2] = new_rgb.b;
+        }
+    }
+
+    // Put modified image data back to canvas
+    ctx2.putImageData(imageData, 0, 0);
+
+    // Draw onto the main canvas
+    ctx.drawImage(off, x, y);
 }
-
 
 
 function gameLoop(time) {
@@ -122,4 +151,8 @@ preload_sprites(["breakable.png",
     "door_closed.png", "door_open.png",
     "life.png",
     "platform.png",
-    "button_on.png", "button_off.png"]);
+    "button_on.png", "button_off.png",
+    "person_1.png", "person_2.png", "person_1_flip.png", "person_2_flip.png",
+    "drone.png", "drone_flip.png",
+    "rocket.png", "rocket_flip.png", 
+    "tank.png", "tank_flip.png"]);

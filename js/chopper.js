@@ -1,7 +1,5 @@
 // Perri van den Berg (2025)
 
-const globalGravity = 0.98; // Define missing globalGravity variable
-
 // Statuses of Chopper
 const FLY = 0;
 const LAND = 1;
@@ -11,11 +9,8 @@ const CRASH = 3;
 class Chopper extends Collision {
     constructor(x, y, coll_manager, world_objs) {
         super(x, y, 32, 18, coll_manager, world_objs); // 32 x 18
-        this.x = x;
-        this.y = y;
 
         this.angle = 0;
-        this.speed = 0;
         this.fuel = 100;
 
         this.color = '#B8C76F'; // Placeholder
@@ -30,6 +25,8 @@ class Chopper extends Collision {
 
         this.max_hp = 3;
         this.hp = this.max_hp;
+
+        this.persons_rescued = 0;
 
         // Shooting
         this.shoot_delay = 0;
@@ -53,6 +50,7 @@ class Chopper extends Collision {
     }
 
     update(deltaTime) {
+        let new_x = this.x, new_y = this.y;
 
         this.sprite_timer += deltaTime * 10.0;
         if (this.sprite_timer >= 2)
@@ -78,26 +76,26 @@ class Chopper extends Collision {
         if (this.status !== CRASH) {
             if (!this.controls.up && !this.controls.down && !this.controls.left
                 && !this.controls.right && this.status !== LAND) {
-                this.hover(deltaTime);
+                new_y += deltaTime * globalGravity;
             } else {
                 if (this.controls.up && this.fuel !== 0) {
-                    this.y--;
-                    this.hover(deltaTime);
+                    new_y--;
+                    new_y += deltaTime * globalGravity;
                     if (this.status === LAND) {
                         this.status = FLY;
                         this.y_vec = -0.5;
                     }
                 }
                 if (this.controls.down && this.status !== LAND) {
-                    this.y++;
-                    this.hover(deltaTime);
+                    new_y++;
+                    new_y += deltaTime * globalGravity;
                 }
                 if (this.controls.left && this.status !== LAND) {
-                    this.x--;
+                    new_x--;
                     this.angle--;
                 }
                 if (this.controls.right && this.status !== LAND) {
-                    this.x++;
+                    new_x++;
                     this.angle++;
                 }
             }
@@ -114,15 +112,15 @@ class Chopper extends Collision {
         if (this.controls.fire && this.shoot_delay <= 0 && this.status === FLY) {
             this.shoot_delay = 5;
             if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards
-                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
-                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+                new Bullet(new_x + this.width / 2 + (this.width - 25) * dir, new_y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+                new Bullet(new_x + this.width / 2 + (this.width - 25) * dir, new_y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
             }
             else if (this.angle > 7) { // Shoot down forwards
-                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
-                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+                new Bullet(new_x + this.width / 2 + (this.width - 20) * dir, new_y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+                new Bullet(new_x + this.width / 2 + (this.width - 20) * dir, new_y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
             }
             else { // Shoot down
-                new Bullet(this.x + this.width / 2, this.y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
+                new Bullet(new_x + this.width / 2, new_y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
             }
         }
 
@@ -137,18 +135,17 @@ class Chopper extends Collision {
         }
 
         if (this.x_vec > 0.1 || this.x_vec < -0.1) {
-            this.x += this.x_vec;
+            new_x += this.x_vec;
             this.x_vec *= 0.8;
         }
 
         if (this.y_vec > 0.1 || this.y_vec < -0.1) {
-            this.y += this.y_vec;
+            new_y += this.y_vec;
             this.y_vec *= 0.9;
         }
 
         this.angle = this.angle * dir;
-        this.move(this.x, this.y);
-
+        this.move(new_x, new_y);
         this.handle_collision();
 
 
@@ -165,9 +162,9 @@ class Chopper extends Collision {
             }
             if (other instanceof Door) {
                 if (BUTTON_PRESSED !== other.id)
-                this.crash(other.x + other.width / 2, other.y + other.height / 2);
+                    this.crash(other.x + other.width / 2, other.y + other.height / 2);
             }
-            if (other instanceof Break) {
+            if (other instanceof Break || other instanceof Tank) {
                 this.crash(other.x + other.width / 2, other.y + other.height / 2);
             }
             if (other instanceof Platform) {
@@ -190,14 +187,20 @@ class Chopper extends Collision {
                 }
             }
 
+
+            if (other instanceof Bullet) {
+                if (other.shooter === ENEMY) {
+                    this.crash(other.x, other.y);
+                    other.explode()
+                }
+            }
+            if (other instanceof Rocket) {
+                this.crash(other.x, other.y);
+                other.explode()
+            }
+
         });
 
-    }
-
-
-    hover(deltaTime) {
-        this.y += deltaTime * gobalGravity;
-        this.move(this.x, this.y);
     }
 
     crash(x, y) {
@@ -207,16 +210,16 @@ class Chopper extends Collision {
             this.status = CRASH;
             this.delay = 30;
             this.hp--;
-            this.x_vec = ((this.x + this.width / 2) - x) / 2;
-            this.y_vec = ((this.y + this.height / 2) - y) / 2;
             // If hp === 0: Restart --> Done in world.
-
         }
+        this.x_vec = ((this.x + this.width / 2) - x) / 3;
+        this.y_vec = ((this.y + this.height / 2) - y) / 3;
     }
 
-    // TODO
-    // pick_up_person() {
-    // }
+    pick_up_person() {
+        console.log("You picked up a person!")
+        this.persons_rescued++;
+    }
 
     // TODO
     // open_fuel() {
@@ -261,6 +264,9 @@ class Chopper extends Collision {
 
         }
 
+        ctx.font = "8px Arial";
+        ctx.fillStyle = 'white';
+        ctx.fillText("Rescued: " + this.persons_rescued, this.x + this.width / 2 - 20, this.y - 30);
         // DEBUG: Collision box.
         // ctx.fillStyle = 'red';
         // ctx.fillRect(this.x, this.y, this.width, this.height);
