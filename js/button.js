@@ -5,6 +5,7 @@
 class Button extends Collision {
     constructor(x, y, id, coll_manager, world_objs) {
         super(x, y, 32, 8, coll_manager, world_objs);
+        this.z = 20;
         this.id = id;
     }
 

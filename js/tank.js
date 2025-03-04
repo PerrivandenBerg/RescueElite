@@ -10,6 +10,8 @@ const COOLDOWN_BULLET = 2;
 class Tank extends Collision {
     constructor(x, y, coll_manager, world_objs, player) {
         super(x, y, 24, 16, coll_manager, world_objs);
+        this.z = 30;
+
         this.cooldown = 0;
         this.player = player;  // The player object.
         this.flip = false;

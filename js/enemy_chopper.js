@@ -8,6 +8,7 @@ const MIN_FOLLOW_DISTANCE_ECHOP = 140;
 class EnemyChopper extends Collision {
     constructor(x, y, coll_manager, world_objs, player) {
         super(x, y, 32, 18, coll_manager, world_objs); // 32 x 18
+        this.z = 30;
 
         this.angle = 0;
 
@@ -92,13 +93,13 @@ class EnemyChopper extends Collision {
         }
 
         if (this.status === FOLLOW) { // Follows the player.
-            let x_vec = this.player.x + this.player.width / 2 - (this.x + this.width / 2);
-            let y_vec = this.player.y + this.player.height / 2 - (this.y + this.height / 2);
-            let max = Math.max(Math.abs(x_vec), Math.abs(y_vec));
+            let x_vec2 = this.player.x + this.player.width / 2 - (this.x + this.width / 2);
+            let y_vec2 = this.player.y + this.player.height / 2 - (this.y + this.height / 2);
+            let max = Math.max(Math.abs(x_vec2), Math.abs(y_vec2));
             if (max >= MIN_FOLLOW_DISTANCE_ECHOP) { // Normalize + Follow
-                this.follow(x_vec / max * 1.2, y_vec / max * 1.2);
+                this.follow(x_vec2 / max * 1.2, y_vec2 / max * 1.2);
             }
-        } else if (this.status === IDLE) { // If in range, move up and down.
+        } else if (this.status === IDLE && dist_player < MAX_FOLLOW_DISTANCE_ECHOP) { // If in range, move up and down.
             if (this.y > this.player.y + 10)
                 this.follow(0, -1);
             else if (this.y < this.player.y - 10)

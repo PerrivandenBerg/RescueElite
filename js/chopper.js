@@ -10,13 +10,14 @@ const CRASH = 3;
 class Chopper extends Collision {
     constructor(x, y, coll_manager, world_objs) {
         super(x, y, 32, 18, coll_manager, world_objs); // 32 x 18
+        this.z = 100;
 
         set_camera(this.x + this.width / 2, this.y + this.height / 2);
 
         this.max_hp = 3;
         this.hp = this.max_hp;
         this.angle = 0;
-        this.fuel = 5;
+        this.fuel = 100;
         this.persons_rescued = 0;
         this.delay = 0; // Used for crash animation.
         this.sprite_timer = 0.0;
@@ -199,6 +200,11 @@ class Chopper extends Collision {
             }
             if (other instanceof FuelStation && this.status === LAND) {
                 this.fuel = Math.min(this.fuel + 10 * deltaTime, 100);
+            }
+            if (other instanceof Exit) {
+                console.log("You completed the level with", this.persons_rescued, "rescues!");
+                this.hp = 0;
+                crash();
             }
         });
     }

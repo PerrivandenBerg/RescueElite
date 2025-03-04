@@ -8,6 +8,8 @@ const MIN_PICKUP_DIST = 20;
 class Person extends Collision {
     constructor(x, y, coll_manager, world_objs, player) {
         super(x, y, 8, 10, coll_manager, world_objs);
+        this.z = 40;
+
         this.player = player; // The player object.
         this.flip = false;
         this.dir = -0.4;

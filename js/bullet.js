@@ -8,6 +8,7 @@ const ENEMY = 1;
 class Bullet extends Collision {
     constructor(x, y, x_vec, y_vec, shooter, cman, wobjs) {
         super(x, y, 2, 2, cman, wobjs);
+        this.z = 40;
         this.x_vec = x_vec;
         this.y_vec = y_vec;
         this.shooter = shooter;

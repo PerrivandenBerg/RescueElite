@@ -3,6 +3,8 @@
 // Handles the collision of objects in the level.
 class Collision {
     constructor(x, y, width, height, cman, wobjs) {
+
+        console.log("new object");
         this.x = x;
         this.y = y;
         this.width = width;

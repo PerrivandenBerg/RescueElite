@@ -16,6 +16,8 @@ const MAX_FOLLOW_RANGE_DRONE = 150;
 class Drone extends Collision {
     constructor(x, y, coll_manager, world_objs, player) {
         super(x, y, 8, 8, coll_manager, world_objs);
+        this.z = 30;
+
         this.player = player; // The player object.
         this.start_x = this.x + this.width / 2;
         this.start_y = this.y + this.height / 2;

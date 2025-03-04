@@ -4,7 +4,9 @@
 // NOTE: Place this on top of a platform.
 class FuelStation extends Collision {
     constructor(x, y, coll_manager, world_objs) {
-        super(x, y, 48, 20, coll_manager, world_objs);
+        super(x, y, 48, 16, coll_manager, world_objs);
+        this.z = 20;
+
     }
 
     update() {
@@ -12,12 +14,12 @@ class FuelStation extends Collision {
     }
 
     draw(ctx) {
-        tint_image(ctx, load_sprite("fuel_station.png"), 'lime', this.x, this.y + 2);
+        tint_image(ctx, load_sprite("fuel_station.png"), 'lime', this.x, this.y);
 
         // Fuel text above the station.
         ctx.font = "7px Arial";
         ctx.textAlign = "center";
         ctx.fillStyle = 'lime';
-        ctx.fillText("FUEL STATION", this.x + this.width / 2, this.y - 2);
+        ctx.fillText("FUEL STATION", this.x + this.width / 2, this.y - 1);
     }
 }

@@ -17,7 +17,7 @@ class World {
         this.curr_world = "";
         this.last_level_loaded = "";
 
-        this.load_from_file("../levels/level2.json"); // Load level to play test.
+        this.load_from_file("../levels/cavern1.json"); // Load level to play test.
     }
 
     // Resets the level. (eg. When the player dies)
@@ -53,6 +53,7 @@ class World {
             data.enemy_choppers.forEach(obj => new EnemyChopper(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
             data.persons.forEach(obj => new Person(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
             data.fuel_stations.forEach(obj => new FuelStation(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
+            data.exits.forEach(obj => new Exit(obj.x, obj.y, this.cman, this.wobjs));
 
         } catch (error) {
             console.error("Error loading level: ", error);
@@ -63,7 +64,10 @@ class World {
         // TODO: Some sort of pause screen (simply don't update objects).
 
         // Updates all the objects in the level.
-        this.wobjs.forEach(obj => { obj.update(deltaTime); });
+
+        for (var obj in this.wobjs) {
+            this.wobjs[obj].update(deltaTime);
+        }
 
         if (typeof this.chopper !== 'undefined' && this.chopper.hp <= 0 && this.chopper.status !== CRASH) {
             this.reset_level(); // Restarts the level if the player died.
@@ -71,6 +75,9 @@ class World {
     }
 
     draw(ctx) {
+
+        this.wobjs.sort((a, b) => a.z - b.z);
+
         ctx.fillStyle = 'black'; // Draws the background.
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 

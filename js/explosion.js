@@ -3,6 +3,8 @@
 // This shows a brief explosion animation. Used by the bullet and rocket classes.
 class Explosion {
     constructor(x, y, max_radius, world_objs) {
+        this.z = 200;
+
         this.x = x;
         this.y = y;
         this.max_r = max_radius; // Radius.

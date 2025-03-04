@@ -129,40 +129,47 @@ function color_to_rgb(color) {
     return hex_to_rgb(ctxTemp.fillStyle);
 }
 
-// Tints an image smoothly, preserving transparency.
-function tint_image(ctx, image, color, x, y) {
-    let off = document.createElement("canvas");
-    off.width = image.width;
-    off.height = image.height;
-    let ctx2 = off.getContext("2d");
+// Cache for tinted images.
+const tintCache = new Map();
 
-    // Draw original image.
-    ctx2.drawImage(image, 0, 0);
+// Transforms the image.
+function getTintedImage(image, color) {
+    const key = image.src + '|' + color; // Unique encoding.
+    if (tintCache.has(key)) {
+        return tintCache.get(key);
+    }
 
-    // Get image data.
-    let imageData = ctx2.getImageData(0, 0, image.width, image.height);
+    let offCanvas = document.createElement("canvas");
+    offCanvas.width = image.width;
+    offCanvas.height = image.height;
+    let offCtx = offCanvas.getContext("2d");
+
+    offCtx.drawImage(image, 0, 0);
+    let imageData = offCtx.getImageData(0, 0, image.width, image.height);
     let data = imageData.data;
-
     let new_rgb = color_to_rgb(color);
 
     for (let i = 0; i < data.length; i += 4) {
-        let alpha = data[i + 3] / 255; // Normalize alpha to 0-1
-
-        // Blend only if the pixel is not fully transparent.
-        if (alpha > 0) {
-            data[i] = Math.round(data[i] * (1 - alpha) + new_rgb.r * alpha);
-            data[i + 1] = Math.round(data[i + 1] * (1 - alpha) + new_rgb.g * alpha);
-            data[i + 2] = Math.round(data[i + 2] * (1 - alpha) + new_rgb.b * alpha);
+        let alpha = data[i + 3];
+        console.log(data[i], data[i + 1], data[i+2]);
+        if (data[i] >= 250 && data[i + 1] >= 250 && data[i + 2] >= 250) {
+            data[i] = new_rgb.r;
+            data[i + 1] = new_rgb.g;
+            data[i + 2] = new_rgb.b;
+            data[i + 3] = alpha;
         }
     }
 
-    // Put modified image data back to canvas.
-    ctx2.putImageData(imageData, 0, 0);
-
-    // Draw onto the main canvas.
-    ctx.drawImage(off, x, y);
+    offCtx.putImageData(imageData, 0, 0);
+    tintCache.set(key, offCanvas); // Store in memory.
+    return offCanvas;
 }
 
+// Changes the color and draws the sprite.
+function tint_image(ctx, image, color, x, y) {
+    let tintedImage = getTintedImage(image, color);
+    ctx.drawImage(tintedImage, x, y);
+}
 
 function gameLoop(time) {
     let deltaTime = (time - lastTime) / 1000; // Convert ms to seconds.
@@ -171,6 +178,7 @@ function gameLoop(time) {
     render();
     requestAnimationFrame(gameLoop);
 }
+
 // Loads all the sprites at the start for smoother gameplay.
 preload_sprites(["breakable.png",
     "chopper_front_1.png", "chopper_front_2.png",
