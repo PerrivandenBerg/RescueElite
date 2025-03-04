@@ -3,12 +3,9 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-var SCALE = 1;
-
-canvas.width = 400 * window.devicePixelRatio;
-canvas.height = 200 * window.devicePixelRatio;
-console.log(window.devicePixelRatio);
-ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+// Width and Height of the screen.
+canvas.width = 800;
+canvas.height = 400;
 
 var globalGravity = 9.8;
 
@@ -22,12 +19,51 @@ function update(deltaTime) {
 
 function render() {
 
+    ctx.save();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
+    // Apply camera transformations
+    ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
+    ctx.scale(camera.zoom, camera.zoom); // Apply zoom
+    ctx.translate(-camera.x, -camera.y); // Move camera to follow target
+   // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
+
     world.draw(ctx);
+
+    ctx.restore();
 }
 
+// Zoom in and out using the mouse wheel.
+canvas.addEventListener("wheel", (event) => {
+    camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
+    camera.zoom = Math.max(0.5, Math.min(3, camera.zoom)); // Clamp zoom level
+});
+
+// Camera values.
+const camera = {
+    x: 0,  // Camera position (updated dynamically)
+    y: 0,
+    cx: 0, // Corner of the camera.
+    cy: 0,
+    zoom: 1.5,  // Set value
+};
+
+// Set the camera's x and y coords.
+function set_camera(x, y) {
+    camera.x = x;
+    camera.y = y;
+    camera.cx = x - canvas.width / (2 * camera.zoom);
+    camera.cy = y - canvas.height / (2 * camera.zoom);
+}
+
+// Move camera to location.
+const cameraSpeed = 0.1;
+function update_camera(x, y) {
+    camera.x += (x - camera.x - canvas.width / (2 * camera.zoom)) * cameraSpeed;
+    camera.y += (y - camera.y - canvas.height / (2 * camera.zoom)) * cameraSpeed;
+}
 
 // Returns the sprite or errors.
 function load_sprite(path) {
@@ -42,7 +78,6 @@ function load_sprite(path) {
 
 // Loads and caches a sprite
 let sprite_storage = {};
-
 async function store_sprite(path) {
     path = "../sprites/" + path;
 
@@ -77,7 +112,6 @@ async function preload_sprites(paths) {
     }
 }
 
-
 // Convert hex colors to RGB.
 function hex_to_rgb(hex) {
     let bigint = parseInt(hex.slice(1), 16);
@@ -95,8 +129,7 @@ function color_to_rgb(color) {
     return hex_to_rgb(ctxTemp.fillStyle);
 }
 
-// Tints an image to another color and draws it.
-// Only replaces the color "#FFFFFF" or rgb(255, 255, 255) in the image.
+// Tints an image smoothly, preserving transparency.
 function tint_image(ctx, image, color, x, y) {
     let off = document.createElement("canvas");
     off.width = image.width;
@@ -113,33 +146,32 @@ function tint_image(ctx, image, color, x, y) {
     let new_rgb = color_to_rgb(color);
 
     for (let i = 0; i < data.length; i += 4) {
-        if (
-            data[i] === 255 &&
-            data[i + 1] === 255 &&
-            data[i + 2] === 255
-        ) {
-            data[i] = new_rgb.r;
-            data[i + 1] = new_rgb.g;
-            data[i + 2] = new_rgb.b;
+        let alpha = data[i + 3] / 255; // Normalize alpha to 0-1
+
+        // Blend only if the pixel is not fully transparent.
+        if (alpha > 0) {
+            data[i] = Math.round(data[i] * (1 - alpha) + new_rgb.r * alpha);
+            data[i + 1] = Math.round(data[i + 1] * (1 - alpha) + new_rgb.g * alpha);
+            data[i + 2] = Math.round(data[i + 2] * (1 - alpha) + new_rgb.b * alpha);
         }
     }
 
-    // Put modified image data back to canvas
+    // Put modified image data back to canvas.
     ctx2.putImageData(imageData, 0, 0);
 
-    // Draw onto the main canvas
+    // Draw onto the main canvas.
     ctx.drawImage(off, x, y);
 }
 
 
 function gameLoop(time) {
-    let deltaTime = (time - lastTime) / 1000; // Convert ms to seconds
+    let deltaTime = (time - lastTime) / 1000; // Convert ms to seconds.
     lastTime = time;
     update((deltaTime || 0));
     render();
     requestAnimationFrame(gameLoop);
 }
-
+// Loads all the sprites at the start for smoother gameplay.
 preload_sprites(["breakable.png",
     "chopper_front_1.png", "chopper_front_2.png",
     "chopper_side_fast_1.png", "chopper_side_fast_2.png",
@@ -154,5 +186,6 @@ preload_sprites(["breakable.png",
     "button_on.png", "button_off.png",
     "person_1.png", "person_2.png", "person_1_flip.png", "person_2_flip.png",
     "drone.png", "drone_flip.png",
-    "rocket.png", "rocket_flip.png", 
-    "tank.png", "tank_flip.png"]);
+    "rocket.png", "rocket_flip.png",
+    "tank.png", "tank_flip.png",
+    "fuel_station.png"]);

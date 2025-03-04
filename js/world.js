@@ -1,48 +1,32 @@
 // Perri van den Berg (2025)
 
-const SIZE = 32;
+var BUTTON_PRESSED = -1; // The current button that is pressed.
+var COLORS = { "0": "blue", "1": "red" }; // The different colors of doors/buttons.
 
-var BUTTON_PRESSED = -1;
-var COLORS = { "0": "blue", "1": "red" };
-
+// This class holds the information about a level and updates/draws any object in it.
 class World {
     constructor() {
 
-        this.cman = new CollisionManager(); // Collision Manager
-        this.wobjs = [];  // World Objects
+        // TODO: Take a file name as input and make a level select screen.
 
-        this.chopper;
+        this.cman = new CollisionManager(); // Manages the collision.
+        this.wobjs = [];  // Contains all the world objects.
+
+        this.chopper; // The player object, also stored in the list.
 
         this.curr_world = "";
         this.last_level_loaded = "";
 
-        this.load_from_file("../levels/level2.json");
+        this.load_from_file("../levels/level2.json"); // Load level to play test.
     }
 
+    // Resets the level. (eg. When the player dies)
     reset_level() {
         this.load_from_file(this.last_level_loaded);
     }
 
-    load_test_level() {
-
-        BUTTON_PRESSED = -1;
-
-        this.cman.reset();
-        this.wobjs = [];
-
-        this.chopper = new Chopper(50, 50, this.cman, this.wobjs);
-
-        new Wall(100, 100, this.cman, this.wobjs);
-        new Wall(150, 100, this.cman, this.wobjs);
-        new Door(50, 120, 0, this.cman, this.wobjs);
-        new Door(50, 128, 0, this.cman, this.wobjs);
-        new Break(100, 128, this.cman, this.wobjs);
-        new Platform(200, 100, this.cman, this.wobjs);
-        new Platform(280, 100, this.cman, this.wobjs);
-        new Button(284, 92, 0, this.cman, this.wobjs);
-    }
-
     // Loads the world from JSON formatting in a given file.
+    // NOTE: The JSON must contain all the different elements of a level.
     async load_from_file(filename) {
         this.last_level_loaded = filename;
         try {
@@ -56,7 +40,6 @@ class World {
             this.cman.reset();
             this.wobjs = [];
 
-
             BUTTON_PRESSED = -1;
             this.chopper = new Chopper(data.chopper.x, data.chopper.y, this.cman, this.wobjs);
 
@@ -69,33 +52,29 @@ class World {
             data.drones.forEach(obj => new Drone(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
             data.enemy_choppers.forEach(obj => new EnemyChopper(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
             data.persons.forEach(obj => new Person(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
-
+            data.fuel_stations.forEach(obj => new FuelStation(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
 
         } catch (error) {
             console.error("Error loading level: ", error);
         }
     }
 
-
     update(deltaTime) {
+        // TODO: Some sort of pause screen (simply don't update objects).
 
-        // Breaking and deleting blocks.
+        // Updates all the objects in the level.
         this.wobjs.forEach(obj => { obj.update(deltaTime); });
 
         if (typeof this.chopper !== 'undefined' && this.chopper.hp <= 0 && this.chopper.status !== CRASH) {
-            this.reset_level();
+            this.reset_level(); // Restarts the level if the player died.
         }
-
     }
 
     draw(ctx) {
-
-        ctx.fillStyle = 'black'; // Draw a background
+        ctx.fillStyle = 'black'; // Draws the background.
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Draws all the objects in the level.
         this.wobjs.forEach(obj => { obj.draw(ctx); });
-
-        // TODO: Draw other objects
-
     }
 }

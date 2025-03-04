@@ -1,3 +1,7 @@
+// Perri van den Berg (2025)
+
+// Used to create levels.
+// TODO: Finish and improve + Comments.
 class LevelEditor {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -49,7 +53,7 @@ class LevelEditor {
             if (index > -1) {
                 list.splice(index, 1);
             } else {
-                list.push({ x, y, id: (this.selectedType === "door" || this.selectedType === "button")? 0 : undefined });
+                list.push({ x, y, id: (this.selectedType === "door" || this.selectedType === "button") ? 0 : undefined });
             }
         }
         this.draw();

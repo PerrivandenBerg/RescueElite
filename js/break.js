@@ -1,3 +1,6 @@
+// Perri van den Berg (2025)
+
+// This object is similar to the Wall object, but breaks when hit by a bullet.
 class Break extends Collision {
     constructor(x, y, coll_manager, world_objs) {
         super(x, y, 8, 8, coll_manager, world_objs);
@@ -5,10 +8,10 @@ class Break extends Collision {
     }
 
     update() {
+        // Does nothing.
     }
 
     explode() {
-        // TODO: Explosion
         this.delete();
     }
 
