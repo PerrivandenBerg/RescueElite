@@ -29,6 +29,8 @@ class LevelEditor {
         this.selected_item = "wall";
         this.is_placing = false;
 
+        this.curr_id = 0;
+
 
         // Manages all button inputs.
         this.canvas.addEventListener("mousedown", (e) => this.start_placing(e));
@@ -57,6 +59,11 @@ class LevelEditor {
         document.getElementById("save-button").addEventListener("click", () => this.save());
         document.getElementById("load-button").addEventListener("click", () => this.load());
         document.getElementById("reset-button").addEventListener("click", () => this.reset());
+
+        document.getElementById("set-id-0").addEventListener("click", () => this.curr_id = 0);
+        document.getElementById("set-id-1").addEventListener("click", () => this.curr_id = 1);
+        document.getElementById("set-id-2").addEventListener("click", () => this.curr_id = 2);
+        document.getElementById("set-id-3").addEventListener("click", () => this.curr_id = 3);
 
         window.addEventListener('keydown', e => this.key_press_handler(e));
 
@@ -212,7 +219,11 @@ class LevelEditor {
                 if (list.findIndex(obj => obj.x === newX && obj.y === newY) === -1) {
                     if (this.selected_item === 'person')
                         newY -= 2;
-                    list.push({ x: newX, y: newY, id: undefined });
+                    if (this.selected_item === 'button' || this.selected_item === 'door') {
+                        list.push({ x: newX, y: newY, id: this.curr_id });
+
+                    } else
+                        list.push({ x: newX, y: newY, id: undefined });
                 }
             }
             x += x_inc;
@@ -380,6 +391,17 @@ class LevelEditor {
     draw_rect(obj, width, height, color) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(obj.x, obj.y, width, height);
+        if (typeof obj.id !== 'undefined') {
+            if (obj.id === 0)
+                this.ctx.fillStyle = 'blue';
+            if (obj.id === 1)
+                this.ctx.fillStyle = 'red';
+            if (obj.id === 2)
+                this.ctx.fillStyle = 'green';
+            if (obj.id === 3)
+                this.ctx.fillStyle = 'yellow';
+            this.ctx.fillRect(obj.x, obj.y, width/2, height/2);
+        }
     }
 }
 

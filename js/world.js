@@ -1,7 +1,7 @@
 // Perri van den Berg (2025)
 
 var BUTTON_PRESSED = -1; // The current button that is pressed.
-var COLORS = { "0": "blue", "1": "red" }; // The different colors of doors/buttons.
+var COLORS = { "0": "blue", "1": "red", "2": "green", "3": "yellow" }; // The different colors of doors/buttons.
 
 // This class holds the information about a level and updates/draws any object in it.
 class World {
@@ -14,10 +14,16 @@ class World {
 
         this.chopper; // The player object, also stored in the list.
 
+        // The corners of the world.
+        this.level_x1 = canvas.width * 10; // Just a high number
+        this.level_y1 = canvas.height * 10;
+        this.level_x2 = 0;
+        this.level_y2 = 0;
+
         this.curr_world = "";
         this.last_level_loaded = "";
 
-        this.load_from_file("../levels/cavern1.json"); // Load level to play test.
+        this.load_from_file("../levels/tutorial.json"); // Load level to play test.
     }
 
     // Resets the level. (eg. When the player dies)
@@ -55,9 +61,21 @@ class World {
             data.fuel_stations.forEach(obj => new FuelStation(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
             data.exits.forEach(obj => new Exit(obj.x, obj.y, this.cman, this.wobjs));
 
+
         } catch (error) {
             console.error("Error loading level: ", error);
         }
+
+
+        for (var obj in this.wobjs) {
+            if (this.wobjs[obj]) {
+                this.level_x1 = Math.min(this.level_x1, this.wobjs[obj].x);
+                this.level_y1 = Math.min(this.level_y1, this.wobjs[obj].y);
+                this.level_x2 = Math.max(this.level_x2, this.wobjs[obj].x + this.wobjs[obj].width);
+                this.level_y2 = Math.max(this.level_y2, this.wobjs[obj].y + this.wobjs[obj].height);
+            }
+        }
+        console.log(this.level_x1, this.level_y1, this.level_x2, this.level_y2);
     }
 
     update(deltaTime) {
@@ -69,19 +87,26 @@ class World {
             this.wobjs[obj].update(deltaTime);
         }
 
-        if (typeof this.chopper !== 'undefined' && this.chopper.hp <= 0 && this.chopper.status !== CRASH) {
+        if (typeof this.chopper !== 'undefined' && ((this.chopper.hp <= 0 && this.chopper.status !== CRASH) || this.chopper.hp < 0)) {
             this.reset_level(); // Restarts the level if the player died.
         }
+
+        // Wrap horizontal movement.
+        if (this.chopper.x < 0) {
+            this.chopper.move(this.chopper.x + this.level_width, this.chopper.y);
+            set_camera(this.chopper.x, this.chopper.y);
+        } else if (this.chopper.x >= this.level_width) {
+            this.chopper.move(this.chopper.x - this.level_width, this.chopper.y);
+            set_camera(this.chopper.x, this.chopper.y);
+        }
+
     }
 
     draw(ctx) {
-
         this.wobjs.sort((a, b) => a.z - b.z);
 
-        ctx.fillStyle = 'black'; // Draws the background.
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draws all the objects in the level.
-        this.wobjs.forEach(obj => { obj.draw(ctx); });
+        this.wobjs.forEach(obj => obj.draw(ctx));
     }
+
+
 }

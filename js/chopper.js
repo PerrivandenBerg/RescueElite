@@ -204,7 +204,7 @@ class Chopper extends Collision {
             if (other instanceof Exit) {
                 console.log("You completed the level with", this.persons_rescued, "rescues!");
                 this.hp = 0;
-                crash();
+                this.crash();
             }
         });
     }

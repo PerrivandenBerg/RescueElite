@@ -13,8 +13,81 @@ let lastTime = 0;
 
 const world = new World();
 
+let gameState = "menu"; // "menu" or "game" or "paused"
+
 function update(deltaTime) {
-    world.update(deltaTime);
+    if (gameState === "game")
+        world.update(deltaTime);
+}
+
+// Start the game when "Play" is clicked
+function startGame() {
+    world.reset_level();
+    gameState = "game";
+}
+
+// Buttons for the menu
+const buttons = [
+    { text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => startGame() },
+    { text: "Endless Mode Coming Soon...", x: canvas.width / 2 - 150, y: 220, width: 300, height: 50, action: () => { } },
+];
+
+// Handle keyboard input for pausing and returning to menu.
+document.addEventListener("keydown", (event) => {
+    if (gameState === "game" && event.key === "p") {
+        gameState = "paused"; // Pause the game
+    } else if (gameState === "paused" && event.key === "p") {
+        gameState = "game"; // Resume game
+    } else if (gameState === "paused" && event.key === "Escape") {
+        gameState = "menu"; // Return to menu
+    }
+});
+
+// Handle mouse clicks for menu buttons.
+canvas.addEventListener("click", (event) => {
+    if (gameState === "menu") {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        for (let button of buttons) {
+            if (
+                mouseX >= button.x &&
+                mouseX <= button.x + button.width &&
+                mouseY >= button.y &&
+                mouseY <= button.y + button.height
+            ) {
+                button.action();
+                break;
+            }
+        }
+    }
+});
+
+// Renders the menu
+function renderMenu() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Rescue Elite", canvas.width / 2, 80);
+
+    // Draw buttons
+    ctx.font = "20px Arial";
+    for (let button of buttons) {
+        ctx.fillStyle = "#4BB";
+        ctx.fillRect(button.x, button.y, button.width, button.height);
+        ctx.strokeStyle = "#fff";
+        ctx.strokeRect(button.x, button.y, button.width, button.height);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+    }
 }
 
 function render() {
@@ -24,13 +97,33 @@ function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
-    // Apply camera transformations
-    ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
-    ctx.scale(camera.zoom, camera.zoom); // Apply zoom
-    ctx.translate(-camera.x, -camera.y); // Move camera to follow target
-   // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
+    if (gameState === "menu") {
+        renderMenu();
+    } else if (gameState === "game" || gameState === "paused") {
+        // Apply camera transformations
+        ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
+        ctx.scale(camera.zoom, camera.zoom); // Apply zoom
+        ctx.translate(-camera.x, -camera.y); // Move camera to follow target
+        // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
 
-    world.draw(ctx);
+        world.draw(ctx);
+
+        // If paused, draw the pause overlay
+        if (gameState === "paused") {
+            ctx.restore();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent overlay
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = "18px Arial";
+            ctx.fillText("Press P to continue", canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText("Press ESC to go to menu", canvas.width / 2, canvas.height / 2 + 50);
+        }
+
+    }
 
     ctx.restore();
 }
@@ -56,6 +149,7 @@ function set_camera(x, y) {
     camera.y = y;
     camera.cx = x - canvas.width / (2 * camera.zoom);
     camera.cy = y - canvas.height / (2 * camera.zoom);
+    clamp_camera()
 }
 
 // Move camera to location.
@@ -63,6 +157,20 @@ const cameraSpeed = 0.1;
 function update_camera(x, y) {
     camera.x += (x - camera.x - canvas.width / (2 * camera.zoom)) * cameraSpeed;
     camera.y += (y - camera.y - canvas.height / (2 * camera.zoom)) * cameraSpeed;
+    clamp_camera()
+}
+
+// Clamp the camera position so it does not go outside the level
+function clamp_camera() {
+    const halfWidth = canvas.width / (2 * camera.zoom);
+    const halfHeight = canvas.height / (2 * camera.zoom);
+
+    camera.x = Math.max(world.level_x1 + halfWidth, Math.min(world.level_x2 - halfWidth, camera.x));
+    camera.y = Math.max(world.level_y1 + halfHeight, Math.min(world.level_y2 - halfHeight, camera.y));
+
+    // Update corner positions
+    camera.cx = camera.x - halfWidth;
+    camera.cy = camera.y - halfHeight;
 }
 
 // Returns the sprite or errors.
@@ -151,7 +259,6 @@ function getTintedImage(image, color) {
 
     for (let i = 0; i < data.length; i += 4) {
         let alpha = data[i + 3];
-        console.log(data[i], data[i + 1], data[i+2]);
         if (data[i] >= 250 && data[i + 1] >= 250 && data[i + 2] >= 250) {
             data[i] = new_rgb.r;
             data[i + 1] = new_rgb.g;
