@@ -4,7 +4,6 @@
 class Collision {
     constructor(x, y, width, height, cman, wobjs) {
 
-        console.log("new object");
         this.x = x;
         this.y = y;
         this.width = width;

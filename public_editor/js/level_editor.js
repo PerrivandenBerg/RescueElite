@@ -1,7 +1,6 @@
 // Perri van den Berg (2025)
 
 // Used to create levels.
-// TODO: Finish and improve + Comments.
 class LevelEditor {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -91,7 +90,6 @@ class LevelEditor {
 
     key_press_handler(e) {
         var evtobj = e;
-        console.log("key: ", evtobj.keyCode);
         if (evtobj.ctrlKey && evtobj.keyCode == 90) // Undo
             this.undo();
         if (evtobj.ctrlKey && evtobj.keyCode == 83) // Save

@@ -202,9 +202,7 @@ class Chopper extends Collision {
                 this.fuel = Math.min(this.fuel + 10 * deltaTime, 100);
             }
             if (other instanceof Exit) {
-                console.log("You completed the level with", this.persons_rescued, "rescues!");
-                this.hp = 0;
-                this.crash();
+                global_complete_level(this.persons_rescued); // TODO: Keep track of more stats!
             }
         });
     }
@@ -212,7 +210,6 @@ class Chopper extends Collision {
     // Crashes the chopper and takes HP.
     crash(x, y) {
         if (this.status !== CRASH) {
-            console.log("Chopper crashed!", x, y);
             this.status = CRASH;
             this.delay = 30;
             this.hp--;

@@ -1,7 +1,9 @@
 // Perri van den Berg (2025)
 
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
 
 // Width and Height of the screen.
 canvas.width = 800;
@@ -13,7 +15,10 @@ let lastTime = 0;
 
 const world = new World();
 
-let gameState = "menu"; // "menu" or "game" or "paused"
+let gameState = "menu"; // "menu" or "game" or "paused" or "level_select" or "next level" or "level_completed"
+
+let levelScore = 0; // Used in the completion screen.
+
 
 function update(deltaTime) {
     if (gameState === "game")
@@ -21,16 +26,10 @@ function update(deltaTime) {
 }
 
 // Start the game when "Play" is clicked
-function startGame() {
-    world.reset_level();
+function startGame(level_name) {
+    world.load_from_file(level_name);
     gameState = "game";
 }
-
-// Buttons for the menu
-const buttons = [
-    { text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => startGame() },
-    { text: "Endless Mode Coming Soon...", x: canvas.width / 2 - 150, y: 220, width: 300, height: 50, action: () => { } },
-];
 
 // Handle keyboard input for pausing and returning to menu.
 document.addEventListener("keydown", (event) => {
@@ -40,31 +39,49 @@ document.addEventListener("keydown", (event) => {
         gameState = "game"; // Resume game
     } else if (gameState === "paused" && event.key === "Escape") {
         gameState = "menu"; // Return to menu
+    } else if (gameState === "paused" && event.key === "r") {
+        world.reset_level(); // Restart level
     }
 });
 
+
+const buttons = [
+    { id: "menu", text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "level_select" },
+    { id: "menu", text: "Endless Mode Coming Soon...", x: canvas.width / 2 - 150, y: 220, width: 300, height: 50, action: () => { } },
+    { id: "level_select", text: "Chopper Training", x: 90, y: 220, width: 200, height: 50, action: () => startGame("levels/chopper_training.json") },
+    { id: "level_select", text: "First Rescue", x: 310, y: 220, width: 200, height: 50, action: () => startGame("levels/first_rescue.json") },
+    { id: "level_select", text: "Final Extraction", x: 530, y: 220, width: 200, height: 50, action: () => startGame("levels/final_extraction.json") },
+    { id: "level_select", text: "Back", x: 690, y: 340, width: 100, height: 50, action: () => gameState = "menu" },
+    { id: "level_completed", text: "Level Select", x: 310, y: 220, width: 200, height: 50, action: () => gameState = "level_select" },
+    { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" }
+];
+
+
 // Handle mouse clicks for menu buttons.
 canvas.addEventListener("click", (event) => {
-    if (gameState === "menu") {
+    if (gameState === "menu" || gameState === "level_select" || gameState === "level_completed") {
         const rect = canvas.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 
         for (let button of buttons) {
-            if (
-                mouseX >= button.x &&
-                mouseX <= button.x + button.width &&
-                mouseY >= button.y &&
-                mouseY <= button.y + button.height
-            ) {
-                button.action();
-                break;
-            }
+            if (button.id === gameState)
+                if (
+                    mouseX >= button.x &&
+                    mouseX <= button.x + button.width &&
+                    mouseY >= button.y &&
+                    mouseY <= button.y + button.height
+                ) {
+                    button.action();
+                    break;
+                }
         }
     }
 });
 
-// Renders the menu
+
+
+// Renders the menu.
 function renderMenu() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -78,17 +95,82 @@ function renderMenu() {
     ctx.textAlign = "center";
     ctx.fillText("Rescue Elite", canvas.width / 2, 80);
 
-    // Draw buttons
+    // Buttons
     ctx.font = "20px Arial";
     for (let button of buttons) {
-        ctx.fillStyle = "#4BB";
-        ctx.fillRect(button.x, button.y, button.width, button.height);
-        ctx.strokeStyle = "#fff";
-        ctx.strokeRect(button.x, button.y, button.width, button.height);
-        ctx.fillStyle = "#fff";
-        ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        if (button.id === "menu") {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
     }
 }
+
+// Handle the level completion screen.
+function global_complete_level(score) {
+    world.clear();
+    gameState = "level_completed";
+    levelScore = score;
+}
+
+// Render the completion screen.
+function renderLevelComplete() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title + Score
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Level Complete!", canvas.width / 2, 100);
+    ctx.fillText("Score: " + levelScore, canvas.width / 2, 150);
+
+    // Buttons
+    ctx.font = "20px Arial";
+    for (let button of buttons) {
+        if (button.id === "level_completed") {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+}
+
+// Render the level select.
+function renderLevelSelect() {
+
+    // 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Select Level", canvas.width / 2, 80);
+
+    // Buttons
+    ctx.font = "20px Arial";
+    for (let button of buttons) {
+        if (button.id === "level_select") {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+}
+
 
 function render() {
 
@@ -99,6 +181,10 @@ function render() {
 
     if (gameState === "menu") {
         renderMenu();
+    } else if (gameState === "level_select") {
+        renderLevelSelect();
+    } else if (gameState === "level_completed") {
+        renderLevelComplete();
     } else if (gameState === "game" || gameState === "paused") {
         // Apply camera transformations
         ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
@@ -121,10 +207,9 @@ function render() {
             ctx.font = "18px Arial";
             ctx.fillText("Press P to continue", canvas.width / 2, canvas.height / 2 + 20);
             ctx.fillText("Press ESC to go to menu", canvas.width / 2, canvas.height / 2 + 50);
+            ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 70);
         }
-
     }
-
     ctx.restore();
 }
 
@@ -140,7 +225,7 @@ const camera = {
     y: 0,
     cx: 0, // Corner of the camera.
     cy: 0,
-    zoom: 1.5,  // Set value
+    zoom: 2.5,  // Set value
 };
 
 // Set the camera's x and y coords.
@@ -175,7 +260,7 @@ function clamp_camera() {
 
 // Returns the sprite or errors.
 function load_sprite(path) {
-    path = "../sprites/" + path;
+    path = "sprites/" + path;
     if (sprite_storage[path]) {
         return sprite_storage[path];
     } else {
@@ -187,7 +272,7 @@ function load_sprite(path) {
 // Loads and caches a sprite
 let sprite_storage = {};
 async function store_sprite(path) {
-    path = "../sprites/" + path;
+    path = "sprites/" + path;
 
     const sprite = new Image();
     sprite.src = path;

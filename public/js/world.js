@@ -7,8 +7,6 @@ var COLORS = { "0": "blue", "1": "red", "2": "green", "3": "yellow" }; // The di
 class World {
     constructor() {
 
-        // TODO: Take a file name as input and make a level select screen.
-
         this.cman = new CollisionManager(); // Manages the collision.
         this.wobjs = [];  // Contains all the world objects.
 
@@ -23,12 +21,18 @@ class World {
         this.curr_world = "";
         this.last_level_loaded = "";
 
-        this.load_from_file("../levels/tutorial.json"); // Load level to play test.
+        this.load_from_file("levels/chopper_training.json"); // Load level to play test.
     }
 
     // Resets the level. (eg. When the player dies)
     reset_level() {
         this.load_from_file(this.last_level_loaded);
+    }
+
+    // Clears all the variables and makes an empty level.
+    clear() {
+        this.cman.reset();
+        this.wobjs = [];
     }
 
     // Loads the world from JSON formatting in a given file.
@@ -75,14 +79,11 @@ class World {
                 this.level_y2 = Math.max(this.level_y2, this.wobjs[obj].y + this.wobjs[obj].height);
             }
         }
-        console.log(this.level_x1, this.level_y1, this.level_x2, this.level_y2);
     }
 
     update(deltaTime) {
-        // TODO: Some sort of pause screen (simply don't update objects).
 
         // Updates all the objects in the level.
-
         for (var obj in this.wobjs) {
             this.wobjs[obj].update(deltaTime);
         }
