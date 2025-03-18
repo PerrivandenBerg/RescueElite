@@ -85,8 +85,10 @@ class EnemyChopper extends Collision {
                 this.draw_color = this.color;
 
             if (this.delay === 0) {
-                if (this.hp <= 0)
+                if (this.hp <= 0) {
                     this.delete();
+                    return;
+                }
                 this.status = IDLE;
                 this.draw_color = this.color;
             }

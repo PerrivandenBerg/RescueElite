@@ -10,7 +10,8 @@ class Rocket extends Collision {
         this.x_vec = x_vec;
         this.y_vec = y_vec;
         this.player = player; // The player object.
-        this.fly_time = 4;
+        this.fly_time = 5;
+        this.alive = 100;
     }
 
     explode() {
@@ -19,12 +20,11 @@ class Rocket extends Collision {
     }
 
     update(deltaTime) {
-        // Check if outside of screen.
-        if (this.x < camera.x - canvas.width / (2 * camera.zoom)
-            || this.y < camera.y - canvas.height / (2 * camera.zoom)
-            || this.x + this.width > camera.x + canvas.width / (2 * camera.zoom)
-            || this.y + this.height > camera.y + canvas.height / (2 * camera.zoom))
+        this.alive--;
+        if (this.alive < 0) {
             this.delete();
+            return;
+        }
 
         // Moves the rocket towards the player.
         this.fly_time -= deltaTime;

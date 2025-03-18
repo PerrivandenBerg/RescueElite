@@ -43,6 +43,7 @@ class Person extends Collision {
         if (dist_player < MIN_PICKUP_DIST) {
             this.player.pick_up_person();
             this.delete();
+            return;
         }
 
         // Movement.

@@ -9,10 +9,8 @@ const CRASH = 3;
 // This is the player chopper class used to play the game.
 class Chopper extends Collision {
     constructor(x, y, coll_manager, world_objs) {
-        super(x, y, 32, 18, coll_manager, world_objs); // 32 x 18
+        super(x + 3, y + 2, 26, 14, coll_manager, world_objs); // 32 x 18
         this.z = 100;
-
-        set_camera(this.x + this.width / 2, this.y + this.height / 2);
 
         this.max_hp = 3;
         this.hp = this.max_hp;
@@ -49,9 +47,6 @@ class Chopper extends Collision {
     }
 
     update(deltaTime) {
-        // Sets the camera position.
-        set_camera(this.x + this.width/2, this.y + this.height/2);
-
         let new_x = this.x, new_y = this.y;
 
         // Chopper animation.
@@ -73,6 +68,8 @@ class Chopper extends Collision {
                 this.status = FLY;
                 this.draw_color = this.color;
             }
+        } else {
+            this.delay = 0;
         }
 
         // Movement + Angles of the chopper based on keyboard input.
@@ -159,6 +156,17 @@ class Chopper extends Collision {
 
     handle_collision(deltaTime) {
 
+        // Check if outside of level.
+        if (this.x + this.width > world.level_x2 && !world.camera.loop_x)
+            this.crash((this.x + this.width / 2) + 20, (this.y + this.height / 2));
+        if (this.x < world.level_x1 && !world.camera.loop_x)
+            this.crash((this.x + this.width / 2) - 20, (this.y + this.height / 2));
+        if (this.y + this.height > world.level_y2)
+            this.crash((this.x + this.width / 2), (this.y + this.height / 2) + 20);
+        if (this.y < world.level_y1)
+            this.crash((this.x + this.width / 2), (this.y + this.height / 2) - 20);
+
+
         // Different collision senarios.
         let others = this.check_collisions();
         others.forEach(other => {
@@ -176,7 +184,7 @@ class Chopper extends Collision {
                 ) {
                     this.status = LAND;
                     if (!(this.controls.up && this.fuel !== 0)) {
-                        this.y = other.y - this.height + 2;
+                        this.y = other.y - this.height;
                         this.move(this.x, this.y);
                     }
                 } else {
@@ -209,14 +217,19 @@ class Chopper extends Collision {
 
     // Crashes the chopper and takes HP.
     crash(x, y) {
+
         if (this.status !== CRASH) {
             this.status = CRASH;
             this.delay = 30;
             this.hp--;
             // If hp === 0: Restart --> Done in world.
+
+            this.x_vec = ((this.x + this.width / 2) - x) / 3;
+            this.y_vec = ((this.y + this.height / 2) - y) / 3;
+        } else {
+            this.x_vec = ((this.x + this.width / 2) - x) / 6;
+            this.y_vec = ((this.y + this.height / 2) - y) / 6;
         }
-        this.x_vec = ((this.x + this.width / 2) - x) / 3;
-        this.y_vec = ((this.y + this.height / 2) - y) / 3;
     }
 
     // Picks up a person.
@@ -245,22 +258,22 @@ class Chopper extends Collision {
             flip = "_flip";
 
         let sprite_chopper = load_sprite("chopper_" + type + sprite_animation + flip + ".png");
-        tint_image(ctx, sprite_chopper, this.draw_color, this.x, this.y);
+        tint_image(ctx, sprite_chopper, this.draw_color, this.x - 3, this.y - 2);
 
         // Draw the hearts in the top-left corner.
         let sprite_heart = load_sprite("life.png");
         for (let i = 0; i < this.max_hp; i++) {
             if (this.hp <= i)
-                tint_image(ctx, sprite_heart, 'gray', camera.cx + 5 + i * 16, camera.cy + 5);
+                tint_image(ctx, sprite_heart, 'gray', world.camera.cx + 5 + i * 16, world.camera.cy + 5);
             else
-                tint_image(ctx, sprite_heart, 'red', camera.cx + 5 + i * 16, camera.cy + 5);
+                tint_image(ctx, sprite_heart, 'red', world.camera.cx + 5 + i * 16, world.camera.cy + 5);
         }
 
         // Draw the rescued persons counter in the top-left corner.
         ctx.font = "8px Arial";
         ctx.fillStyle = 'white';
-        ctx.textAlign = "left"; 
-        ctx.fillText("Rescued: " + this.persons_rescued, camera.cx + 5, camera.cy + 28);
+        ctx.textAlign = "left";
+        ctx.fillText("Rescued: " + this.persons_rescued, world.camera.cx + 5, world.camera.cy + 28);
 
         // Draw the fuel left counter counter in the top-left corner.
         ctx.font = "8px Arial";
@@ -268,7 +281,7 @@ class Chopper extends Collision {
             ctx.fillStyle = 'white';
         else
             ctx.fillStyle = 'red';
-        ctx.textAlign = "left"; 
-        ctx.fillText("Fuel: " + Math.round(this.fuel), camera.cx + 5, camera.cy + 36);
+        ctx.textAlign = "left";
+        ctx.fillText("Fuel: " + Math.round(this.fuel), world.camera.cx + 5, world.camera.cy + 36);
     }
 }

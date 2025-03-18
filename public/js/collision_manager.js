@@ -65,15 +65,15 @@ class CollisionManager {
     get_colliding_objects(x, y, width, height) {
         let result = new Set();
         let keys = this._get_keys_for_object({ x, y, width, height });
-        for (let key of keys) 
-            if (this.cells.has(key)) 
-                for (let obj of this.cells.get(key)) 
+        for (let key of keys)
+            if (this.cells.has(key))
+                for (let obj of this.cells.get(key))
                     if (
                         x < obj.x + obj.width &&
                         x + width > obj.x &&
                         y < obj.y + obj.height &&
                         y + height > obj.y
-                    ) 
+                    )
                         result.add(obj);
         return Array.from(result);
     }

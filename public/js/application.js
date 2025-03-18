@@ -1,14 +1,11 @@
 // Perri van den Berg (2025)
 
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 
-// Width and Height of the screen.
-canvas.width = 800;
-canvas.height = 400;
 
+// Global variables.
 var globalGravity = 9.8;
 
 let lastTime = 0;
@@ -18,6 +15,40 @@ const world = new World();
 let gameState = "menu"; // "menu" or "game" or "paused" or "level_select" or "next level" or "level_completed"
 
 let levelScore = 0; // Used in the completion screen.
+
+canvas.width = 800;
+canvas.height = 400;
+
+
+// Loads a level.
+document.getElementById("load-button").addEventListener("click", () => load());
+async function load() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json"; // Accept JSON files only
+    input.style.display = "none";
+
+    input.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                let data = JSON.parse(e.target.result);
+                world.import_json(data);
+                gameState = "game";
+            } catch (error) {
+                console.error("Error loading level: ", error);
+                alert("Invalid file format. Please upload a valid level file.");
+            }
+        };
+
+        reader.readAsText(file);
+    });
+
+    input.click();
+}
 
 
 function update(deltaTime) {
@@ -176,6 +207,8 @@ function render() {
 
     ctx.save();
 
+    ctx.imageSmoothingEnabled = false;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
@@ -188,8 +221,8 @@ function render() {
     } else if (gameState === "game" || gameState === "paused") {
         // Apply camera transformations
         ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
-        ctx.scale(camera.zoom, camera.zoom); // Apply zoom
-        ctx.translate(-camera.x, -camera.y); // Move camera to follow target
+        ctx.scale(world.camera.zoom, world.camera.zoom); // Apply zoom
+        ctx.translate(-world.camera.x, -world.camera.y); // Move camera to follow target
         // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
 
         world.draw(ctx);
@@ -213,50 +246,6 @@ function render() {
     ctx.restore();
 }
 
-// Zoom in and out using the mouse wheel.
-canvas.addEventListener("wheel", (event) => {
-    camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
-    camera.zoom = Math.max(0.5, Math.min(3, camera.zoom)); // Clamp zoom level
-});
-
-// Camera values.
-const camera = {
-    x: 0,  // Camera position (updated dynamically)
-    y: 0,
-    cx: 0, // Corner of the camera.
-    cy: 0,
-    zoom: 2.5,  // Set value
-};
-
-// Set the camera's x and y coords.
-function set_camera(x, y) {
-    camera.x = x;
-    camera.y = y;
-    camera.cx = x - canvas.width / (2 * camera.zoom);
-    camera.cy = y - canvas.height / (2 * camera.zoom);
-    clamp_camera()
-}
-
-// Move camera to location.
-const cameraSpeed = 0.1;
-function update_camera(x, y) {
-    camera.x += (x - camera.x - canvas.width / (2 * camera.zoom)) * cameraSpeed;
-    camera.y += (y - camera.y - canvas.height / (2 * camera.zoom)) * cameraSpeed;
-    clamp_camera()
-}
-
-// Clamp the camera position so it does not go outside the level
-function clamp_camera() {
-    const halfWidth = canvas.width / (2 * camera.zoom);
-    const halfHeight = canvas.height / (2 * camera.zoom);
-
-    camera.x = Math.max(world.level_x1 + halfWidth, Math.min(world.level_x2 - halfWidth, camera.x));
-    camera.y = Math.max(world.level_y1 + halfHeight, Math.min(world.level_y2 - halfHeight, camera.y));
-
-    // Update corner positions
-    camera.cx = camera.x - halfWidth;
-    camera.cy = camera.y - halfHeight;
-}
 
 // Returns the sprite or errors.
 function load_sprite(path) {
@@ -298,7 +287,6 @@ async function preload_sprites(paths) {
         for (const path of paths) {
             await store_sprite(path);  // Wait for each sprite to be loaded
         }
-        console.log("All sprites loaded!");
         gameLoop();  // Start the game once all sprites are loaded
     } catch (error) {
         console.error("Failed to load some sprites:", error);

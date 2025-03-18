@@ -12,6 +12,7 @@ class Bullet extends Collision {
         this.x_vec = x_vec;
         this.y_vec = y_vec;
         this.shooter = shooter;
+        this.alive = 100;
     }
 
     explode() {
@@ -21,12 +22,11 @@ class Bullet extends Collision {
 
     update() {
         // Check if outside of screen.
-        if (this.x < camera.x - canvas.width / (2 * camera.zoom) 
-            || this.y < camera.y - canvas.height / (2 * camera.zoom) 
-            || this.x + this.width > camera.x + canvas.width / (2 * camera.zoom)
-            || this.y + this.height > camera.y + canvas.height / (2 * camera.zoom))
+        this.alive--;
+        if (this.alive < 0) {
             this.delete();
-
+            return;
+        }
         // Move the bullet in a direction.
         let new_x = this.x, new_y = this.y;
         if (this.x_vec > 0.1 || this.x_vec < -0.1)
