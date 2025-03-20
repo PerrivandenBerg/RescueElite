@@ -4,14 +4,14 @@
 // of the nearby player.
 class Rocket extends Collision {
     constructor(x, y, x_vec, y_vec, cman, wobjs, player) {
-        super(x, y, 2, 2, cman, wobjs);
+        super(x, y, 4, 4, cman, wobjs);
         this.z = 40;
 
         this.x_vec = x_vec;
         this.y_vec = y_vec;
         this.player = player; // The player object.
         this.fly_time = 5;
-        this.alive = 100;
+        this.alive = 140;
     }
 
     explode() {
@@ -66,6 +66,6 @@ class Rocket extends Collision {
         let img = "rocket.png";
         if (this.x_vec < 0)
             img = "rocket_flip.png";
-        tint_image(ctx, load_sprite(img), 'blue', this.x + 1, this.y + 1);
+        tint_image(ctx, load_sprite(img), colorData['rocket'], this.x + 1, this.y);
     }
 }

@@ -12,7 +12,7 @@ class EnemyChopper extends Collision {
 
         this.angle = 0;
 
-        this.color = 'blue'; // Placeholder
+        this.color = colorData['enemy']; // Placeholder
         this.draw_color = this.color;
 
         this.x_vec = 0;
@@ -59,16 +59,41 @@ class EnemyChopper extends Collision {
         }
     }
 
+    has_sight(x1, y1, x2, y2) {
+        let steps = 50; // Number of steps for the raycast.
+        let dx = (x2 - x1) / steps;
+        let dy = (y2 - y1) / steps;
+
+        for (let i = 0; i < steps; i++) {
+            let check_x = x1 + dx * i;
+            let check_y = y1 + dy * i;
+
+            let colliding_objects = this.cman.get_colliding_objects(check_x, check_y, 4, 4);
+            for (let k in colliding_objects) {
+                if (colliding_objects[k] instanceof Wall || colliding_objects[k] instanceof Break ||
+                    colliding_objects[k] instanceof Door
+                )
+                return false; // A wall is in the way
+            }
+        }
+
+        return true; // No obstacles detected
+    }
+
+
     update(deltaTime) {
+
+        // Check if the enemy has a clear line of sight to the player
+        let can_see_player = this.has_sight(this.x, this.y, this.player.x, this.player.y);
 
         // Distance between this and player.
         let dist_player = dist((this.player.x + this.player.width / 2), (this.player.y + this.player.height / 2),
             (this.x + this.width / 2), (this.y + this.height / 2));
 
-        if (dist_player < MAX_FOLLOW_DISTANCE_ECHOP && this.status === IDLE)
+        if (dist_player < MAX_FOLLOW_DISTANCE_ECHOP && this.status === IDLE && can_see_player)
             this.status = FOLLOW; // In range -> follow.
 
-        if ((dist_player < MIN_FOLLOW_DISTANCE_ECHOP) && this.status === FOLLOW)
+        if ((dist_player < MIN_FOLLOW_DISTANCE_ECHOP || !can_see_player) && this.status === FOLLOW)
             this.status = IDLE; // Too close -> idle.
 
         // Animation.
@@ -101,7 +126,7 @@ class EnemyChopper extends Collision {
             if (max >= MIN_FOLLOW_DISTANCE_ECHOP) { // Normalize + Follow
                 this.follow(x_vec2 / max * 1.2, y_vec2 / max * 1.2);
             }
-        } else if (this.status === IDLE && dist_player < MAX_FOLLOW_DISTANCE_ECHOP) { // If in range, move up and down.
+        } else if (this.status === IDLE && can_see_player && dist_player < MAX_FOLLOW_DISTANCE_ECHOP) { // If in range, move up and down.
             if (this.y > this.player.y + 10)
                 this.follow(0, -1);
             else if (this.y < this.player.y - 10)
@@ -118,7 +143,7 @@ class EnemyChopper extends Collision {
         if (this.shoot_delay > 0)
             this.shoot_delay -= deltaTime * 5.0;
 
-        if (this.shoot_delay <= 0 && dist_player < MAX_FOLLOW_DISTANCE_ECHOP) {
+        if (this.shoot_delay <= 0 && can_see_player && dist_player < MAX_FOLLOW_DISTANCE_ECHOP) {
             this.shoot_delay = 5;
             if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards.
                 new Bullet(new_x + this.width / 2 + (this.width - 25) * dir, new_y + this.height / 2 + 2, 4 * dir, 0, ENEMY, this.cman, this.wobjs);

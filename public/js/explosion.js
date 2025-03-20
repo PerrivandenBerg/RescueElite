@@ -25,9 +25,12 @@ class Explosion {
     }
 
     draw(ctx) {
+        ctx.save();
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.fillStyle = colorData['explosion'];
+        ctx.globalAlpha = 0.5;
         ctx.fill();
+        ctx.restore();
     }
 }

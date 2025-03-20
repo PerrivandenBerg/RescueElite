@@ -17,6 +17,6 @@ class Break extends Collision {
     }
 
     draw(ctx) {
-        tint_image(ctx, load_sprite("breakable.png"), 'purple', this.x, this.y);
+        tint_image(ctx, load_sprite("breakable.png"), colorData['break'], this.x, this.y);
     }
 }

@@ -3,8 +3,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-
-
 // Global variables.
 var globalGravity = 9.8;
 
@@ -64,14 +62,10 @@ function startGame(level_name) {
 
 // Handle keyboard input for pausing and returning to menu.
 document.addEventListener("keydown", (event) => {
-    if (gameState === "game" && event.key === "p") {
+    if (gameState === "game" && event.key === "Escape") {
         gameState = "paused"; // Pause the game
-    } else if (gameState === "paused" && event.key === "p") {
-        gameState = "game"; // Resume game
     } else if (gameState === "paused" && event.key === "Escape") {
-        gameState = "menu"; // Return to menu
-    } else if (gameState === "paused" && event.key === "r") {
-        world.reset_level(); // Restart level
+        gameState = "game"; // Pause the game
     }
 });
 
@@ -84,13 +78,16 @@ const buttons = [
     { id: "level_select", text: "Final Extraction", x: 530, y: 220, width: 200, height: 50, action: () => startGame("levels/final_extraction.json") },
     { id: "level_select", text: "Back", x: 690, y: 340, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "level_completed", text: "Level Select", x: 310, y: 220, width: 200, height: 50, action: () => gameState = "level_select" },
-    { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" }
+    { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
+    { id: "paused", text: "Resume", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "game" },
+    { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => {world.reset_level(); gameState = "game";} },
+    { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "menu" }
 ];
 
 
 // Handle mouse clicks for menu buttons.
 canvas.addEventListener("click", (event) => {
-    if (gameState === "menu" || gameState === "level_select" || gameState === "level_completed") {
+    if (gameState === "menu" || gameState === "level_select" || gameState === "paused" || gameState === "level_completed") {
         const rect = canvas.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
@@ -110,7 +107,31 @@ canvas.addEventListener("click", (event) => {
     }
 });
 
+function renderPaused() {
 
+    // Background overlay
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Paused", canvas.width / 2, 80);
+
+    // Buttons
+    ctx.font = "20px Arial";
+    for (let button of buttons) {
+        if (button.id === "paused") {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+}
 
 // Renders the menu.
 function renderMenu() {
@@ -207,10 +228,7 @@ function render() {
 
     ctx.save();
 
-    ctx.imageSmoothingEnabled = false;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = false;
 
     if (gameState === "menu") {
         renderMenu();
@@ -230,17 +248,8 @@ function render() {
         // If paused, draw the pause overlay
         if (gameState === "paused") {
             ctx.restore();
-            ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent overlay
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            renderPaused();
 
-            ctx.fillStyle = "#fff";
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2 - 20);
-            ctx.font = "18px Arial";
-            ctx.fillText("Press P to continue", canvas.width / 2, canvas.height / 2 + 20);
-            ctx.fillText("Press ESC to go to menu", canvas.width / 2, canvas.height / 2 + 50);
-            ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 70);
         }
     }
     ctx.restore();

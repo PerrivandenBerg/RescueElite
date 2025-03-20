@@ -15,7 +15,7 @@ class Rock extends Collision {
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'purple';
+        ctx.fillStyle = colorData['wall'];
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }

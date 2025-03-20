@@ -14,12 +14,12 @@ class FuelStation extends Collision {
     }
 
     draw(ctx) {
-        tint_image(ctx, load_sprite("fuel_station.png"), 'lime', this.x, this.y);
+        tint_image(ctx, load_sprite("fuel_station.png"), colorData['fuel_station'], this.x, this.y);
 
         // Fuel text above the station.
         ctx.font = "7px Arial";
         ctx.textAlign = "center";
-        ctx.fillStyle = 'lime';
+        ctx.fillStyle = colorData['fuel_station'];
         ctx.fillText("FUEL STATION", this.x + this.width / 2, this.y - 1);
     }
 }

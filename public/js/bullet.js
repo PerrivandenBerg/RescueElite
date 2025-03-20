@@ -60,7 +60,10 @@ class Bullet extends Collision {
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'white';
+        if (this.shooter === PLAYER)
+            ctx.fillStyle = colorData['bullet'];
+        else
+            ctx.fillStyle = colorData['bullet_enemy'];
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }

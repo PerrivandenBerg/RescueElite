@@ -104,8 +104,8 @@ class Drone extends Collision {
         if (this.flip)
             img = "drone_flip.png";
         if (this.status === FOLLOW)
-            tint_image(ctx, load_sprite(img), 'red', this.x + 1, this.y + 1);
+            tint_image(ctx, load_sprite(img), colorData['enemy_angry'], this.x + 1, this.y + 1);
         else
-            tint_image(ctx, load_sprite(img), 'blue', this.x + 1, this.y + 1);
+            tint_image(ctx, load_sprite(img), colorData['enemy'], this.x + 1, this.y + 1);
     }
 }

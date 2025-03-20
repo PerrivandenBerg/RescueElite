@@ -1,7 +1,7 @@
 // Perri van den Berg (2025)
 
 var BUTTON_PRESSED = -1; // The current button that is pressed.
-var COLORS = { "0": "blue", "1": "red", "2": "green", "3": "yellow" }; // The different colors of doors/buttons.
+var COLORS = { "0": colorData['button0'], "1": colorData['button1'], "2": colorData['button2'], "3": colorData['button3'] }; // The different colors of doors/buttons.
 
 const CAMERA_SPEED = 0.1;
 
@@ -20,10 +20,11 @@ class World {
         this.level_x2 = 0;
         this.level_y2 = 0;
 
+        this.data_copy; // Used to restart a(n imported) level.
+
         this.level_loop_x = false;
 
         this.curr_world = "";
-        this.last_level_loaded = "";
 
         if (level === "")
             this.load_from_file("levels/chopper_training.json"); // Load level to play test.
@@ -85,7 +86,7 @@ class World {
 
     // Resets the level. (eg. When the player dies)
     reset_level() {
-        this.load_from_file(this.last_level_loaded);
+        this.import_json(this.data_copy);
     }
 
     // Clears all the variables and makes an empty level.
@@ -103,7 +104,6 @@ class World {
     // NOTE: The JSON must contain all the different elements of a level.
     async load_from_file(filename) {
         this.clear();
-        this.last_level_loaded = filename;
         try {
             const response = await fetch(filename);
             if (!response.ok) {
@@ -119,6 +119,8 @@ class World {
     }
 
     import_json(data) {
+
+        this.data_copy = data; // Copies data for restarts.
 
         this.cman.reset();
         this.wobjs = [];
@@ -187,6 +189,11 @@ class World {
     }
 
     draw(ctx) {
+
+        ctx.fillStyle = colorData['background'];
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
         this.wobjs.sort((a, b) => a.z - b.z);
         this.wobjs.forEach(obj => obj.draw(ctx));
     }

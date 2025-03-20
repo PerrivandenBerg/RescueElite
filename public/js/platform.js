@@ -13,6 +13,6 @@ class Platform extends Collision {
     }
 
     draw(ctx) {
-        tint_image(ctx, load_sprite("platform.png"), 'white', this.x, this.y);
+        tint_image(ctx, load_sprite("platform.png"), colorData['platform'], this.x, this.y);
     }
 }

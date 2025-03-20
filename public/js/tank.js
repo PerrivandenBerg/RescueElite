@@ -79,6 +79,6 @@ class Tank extends Collision {
         let img = "tank.png";
         if (this.flip)
             img = "tank_flip.png";
-        tint_image(ctx, load_sprite(img), 'blue', this.x + 1, this.y + 1);
+        tint_image(ctx, load_sprite(img), colorData['enemy'], this.x + 1, this.y + 1);
     }
 }

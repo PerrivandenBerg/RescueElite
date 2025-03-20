@@ -15,6 +15,7 @@ class Person extends Collision {
         this.dir = -0.4;
         this.walk_delay = 0; // Person walks in a direction for x frames.
         this.sprite_timer = 0.0;
+        this.help_timer = 80; // Time left befor shouting help.
     }
 
     update(deltaTime) {
@@ -30,6 +31,15 @@ class Person extends Collision {
             this.dir *= -1;
             this.walk_delay = Math.random() * 4 + 2;
         }
+
+        if (Math.random() > 0.5) {
+            this.help_timer--;
+        }
+        if (this.help_timer <= 0) {
+            this.help_timer = 80;
+            new PersonHelp(this.x + this.width/2, this.y - 4, this.cman, this.wobjs);
+        }
+
 
         // Flip based on movement direction.
         if (this.dir > 0)
@@ -88,6 +98,6 @@ class Person extends Collision {
         if (this.flip)
             img = "person" + sprite_animation + "_flip.png";
 
-        tint_image(ctx, load_sprite(img), 'white', this.x + 1, this.y + 1);
+        tint_image(ctx, load_sprite(img), colorData['person'], this.x + 1, this.y + 1);
     }
 }
