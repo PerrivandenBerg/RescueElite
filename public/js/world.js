@@ -20,6 +20,8 @@ class World {
         this.level_x2 = 0;
         this.level_y2 = 0;
 
+        this.max_persons = 0;
+
         this.data_copy; // Used to restart a(n imported) level.
 
         this.level_loop_x = false;
@@ -39,9 +41,11 @@ class World {
             cx: 0, // Corner of the camera.
             cy: 0,
             zoom: 2.5,  // Set value
-            loop_x: false,  // Set value
+            loop_x: false  // Set value
         };
 
+        // Screen overlay.
+        this.overlay = new Overlay(this, this.chopper);
 
 
         // Zoom in and out using the mouse wheel.
@@ -125,8 +129,12 @@ class World {
         this.cman.reset();
         this.wobjs = [];
 
+        this.max_persons = 0;
+
         BUTTON_PRESSED = -1;
         this.chopper = new Chopper(data.chopper.x, data.chopper.y, this.cman, this.wobjs);
+
+        this.overlay.set_player(this.chopper);
 
         data.walls.forEach(obj => new Wall(obj.x, obj.y, this.cman, this.wobjs));
         data.doors.forEach(obj => new Door(obj.x, obj.y, obj.id, this.cman, this.wobjs));
@@ -136,9 +144,10 @@ class World {
         data.tanks.forEach(obj => new Tank(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
         data.drones.forEach(obj => new Drone(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
         data.enemy_choppers.forEach(obj => new EnemyChopper(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
-        data.persons.forEach(obj => new Person(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
+        data.persons.forEach(obj => { new Person(obj.x, obj.y, this.cman, this.wobjs, this.chopper); this.max_persons++; });
         data.fuel_stations.forEach(obj => new FuelStation(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
         data.exits.forEach(obj => new Exit(obj.x, obj.y, this.cman, this.wobjs));
+        data.hearts.forEach(obj => new Heart(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
 
         this.level_loop_x = data.level_loop_x ? data.level_loop_x : false;
         this.camera.loop_x = this.level_loop_x;
@@ -186,9 +195,19 @@ class World {
             this.reset_level(); // Restarts the level if the player died.
         }
 
+        this.overlay.update();
+
     }
 
     draw(ctx) {
+
+        ctx.save();
+
+        // Apply camera transformations
+        ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
+        ctx.scale(world.camera.zoom, world.camera.zoom); // Apply zoom
+        ctx.translate(-world.camera.x, -world.camera.y); // Move camera to follow target
+        // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
 
         ctx.fillStyle = colorData['background'];
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -196,5 +215,9 @@ class World {
 
         this.wobjs.sort((a, b) => a.z - b.z);
         this.wobjs.forEach(obj => obj.draw(ctx));
+
+        ctx.restore();
+
+        this.overlay.draw(ctx);
     }
 }

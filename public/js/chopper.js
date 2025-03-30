@@ -46,6 +46,28 @@ class Chopper extends Collision {
         }
     }
 
+    shoot() {
+        let dir = this.angle < 0 ? -1 : 1;
+        this.angle = Math.abs(this.angle); // Absolute value to reduce if-statements.
+
+        if (this.shoot_delay <= 0 && this.status === FLY) {
+            this.shoot_delay = 3;
+            if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards.
+                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+                new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+            }
+            else if (this.angle > 7) { // Shoot down forwards.
+                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+                new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+            }
+            else { // Shoot down.
+                new Bullet(this.x + this.width / 2, this.y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
+            }
+        }
+
+        this.angle = this.angle * dir; // Flips the angle back.
+    }
+
     update(deltaTime) {
         let new_x = this.x, new_y = this.y;
 
@@ -109,6 +131,9 @@ class Chopper extends Collision {
             this.crash(this.x + this.width / 2, this.y + this.height / 2);
         }
 
+        if (this.controls.fire)
+            this.shoot();
+
         let dir = this.angle < 0 ? -1 : 1;
         this.angle = Math.abs(this.angle); // Absolute value to reduce if-statements.
 
@@ -116,20 +141,6 @@ class Chopper extends Collision {
         if (this.shoot_delay > 0)
             this.shoot_delay -= deltaTime * 5.0;
 
-        if (this.controls.fire && this.shoot_delay <= 0 && this.status === FLY) {
-            this.shoot_delay = 3;
-            if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards.
-                new Bullet(new_x + this.width / 2 + (this.width - 25) * dir, new_y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
-                new Bullet(new_x + this.width / 2 + (this.width - 25) * dir, new_y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
-            }
-            else if (this.angle > 7) { // Shoot down forwards.
-                new Bullet(new_x + this.width / 2 + (this.width - 20) * dir, new_y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
-                new Bullet(new_x + this.width / 2 + (this.width - 20) * dir, new_y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
-            }
-            else { // Shoot down.
-                new Bullet(new_x + this.width / 2, new_y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
-            }
-        }
 
         // Resets the angles of the chopper if there is no movement.
         if (this.angle >= 7 && !(this.controls.left ^ this.controls.right))
@@ -260,28 +271,5 @@ class Chopper extends Collision {
         let sprite_chopper = load_sprite("chopper_" + type + sprite_animation + flip + ".png");
         tint_image(ctx, sprite_chopper, this.draw_color, this.x - 3, this.y - 2);
 
-        // Draw the hearts in the top-left corner.
-        let sprite_heart = load_sprite("life.png");
-        for (let i = 0; i < this.max_hp; i++) {
-            if (this.hp <= i)
-                tint_image(ctx, sprite_heart, 'dark red', world.camera.cx + 5 + i * 16, world.camera.cy + 5);
-            else
-                tint_image(ctx, sprite_heart, 'red', world.camera.cx + 5 + i * 16, world.camera.cy + 5);
-        }
-
-        // Draw the rescued persons counter in the top-left corner.
-        ctx.font = "8px Arial";
-        ctx.fillStyle = 'white';
-        ctx.textAlign = "left";
-        ctx.fillText("Rescued: " + this.persons_rescued, world.camera.cx + 5, world.camera.cy + 28);
-
-        // Draw the fuel left counter counter in the top-left corner.
-        ctx.font = "8px Arial";
-        if (this.fuel > 10)
-            ctx.fillStyle = 'white';
-        else
-            ctx.fillStyle = 'red';
-        ctx.textAlign = "left";
-        ctx.fillText("Fuel: " + Math.round(this.fuel), world.camera.cx + 5, world.camera.cy + 36);
     }
 }

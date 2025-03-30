@@ -23,7 +23,7 @@ class LevelEditor {
 
         this.memory = []; // Stores the level memory for undo.
 
-        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [], tanks: [], drones: [], enemy_choppers: [], fuel_stations: [], persons: [], exits: [] };
+        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [], tanks: [], drones: [], enemy_choppers: [], fuel_stations: [], persons: [], exits: [], hearts: [] };
         this.selected_type = "normal";
         this.selected_item = "wall";
         this.is_placing = false;
@@ -53,6 +53,7 @@ class LevelEditor {
         document.getElementById("item-fuel-station").addEventListener("click", () => this.select_item("fuel_station"));
         document.getElementById("item-person").addEventListener("click", () => this.select_item("person"));
         document.getElementById("item-exit").addEventListener("click", () => this.select_item("exit"));
+        document.getElementById("item-heart").addEventListener("click", () => this.select_item("heart"));
 
         document.getElementById("undo-button").addEventListener("click", () => this.undo());
         document.getElementById("save-button").addEventListener("click", () => this.save());
@@ -83,7 +84,7 @@ class LevelEditor {
     // Resets the level.
     reset() {
         this.memory = [];
-        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [], tanks: [], drones: [], enemy_choppers: [], fuel_stations: [], persons: [], exits: [] };;
+        this.objects = { chopper: null, walls: [], doors: [], breaks: [], platforms: [], buttons: [], tanks: [], drones: [], enemy_choppers: [], fuel_stations: [], persons: [], exits: [], hearts: [] };;
         this.draw();
     }
 
@@ -361,6 +362,7 @@ class LevelEditor {
         this.objects.fuel_stations.forEach(b => this.draw_rect(b, 48, 16, "lime"));
         this.objects.persons.forEach(b => this.draw_rect(b, 8, 10, "white"));
         this.objects.exits.forEach(b => this.draw_rect(b, 32, 32, "green"));
+        this.objects.hearts.forEach(b => this.draw_rect(b, 16, 16, "pink"));
 
         this.ctx.restore();
     }

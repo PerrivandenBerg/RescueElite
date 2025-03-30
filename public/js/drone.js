@@ -24,6 +24,8 @@ class Drone extends Collision {
         this.status = IDLE;
         this.flip = true;
         this.dir = -1;
+
+        this.r = 0; // Range/Radar animation.
     }
 
     // Moves towards a location.
@@ -77,6 +79,12 @@ class Drone extends Collision {
                 this.status = IDLE;
             }
         }
+
+        this.r += 0.5;
+        if (this.r > MIN_ACTIVATION_DISTANCE_DRONE)
+            this.r = 0;
+
+
         this.handle_collision();
     }
 
@@ -86,7 +94,7 @@ class Drone extends Collision {
         others.forEach(other => {
             if (other instanceof Wall || other instanceof Platform ||
                 other instanceof Button || (other instanceof Door && other.id !== BUTTON_PRESSED) ||
-                    other instanceof Platform || other instanceof Break
+                other instanceof Platform || other instanceof Break
             ) {
                 this.explode();
             }
@@ -99,13 +107,27 @@ class Drone extends Collision {
     }
 
     draw(ctx) {
+
+
+
         // Draws the drone.
         let img = "drone.png";
         if (this.flip)
             img = "drone_flip.png";
-        if (this.status === FOLLOW)
+        if (this.status === FOLLOW) {
             tint_image(ctx, load_sprite(img), colorData['enemy_angry'], this.x + 1, this.y + 1);
-        else
+        }
+        else {
+            // Draw detection animation.
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.r, 0, 2 * Math.PI);
+            ctx.fillStyle = colorData['enemy'];
+            ctx.globalAlpha = 0.3 - 0.3*this.r / MIN_ACTIVATION_DISTANCE_DRONE;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
             tint_image(ctx, load_sprite(img), colorData['enemy'], this.x + 1, this.y + 1);
+        }
     }
 }

@@ -80,14 +80,17 @@ const buttons = [
     { id: "level_completed", text: "Level Select", x: 310, y: 220, width: 200, height: 50, action: () => gameState = "level_select" },
     { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
     { id: "paused", text: "Resume", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "game" },
-    { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => {world.reset_level(); gameState = "game";} },
-    { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "menu" }
+    { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { world.reset_level(); gameState = "game"; } },
+    { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "menu" },
+    { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
+    { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { world.reset_level(); } },
+    { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } }
 ];
 
 
 // Handle mouse clicks for menu buttons.
 canvas.addEventListener("click", (event) => {
-    if (gameState === "menu" || gameState === "level_select" || gameState === "paused" || gameState === "level_completed") {
+    if (gameState === "menu" || gameState === "game" || gameState === "level_select" || gameState === "paused" || gameState === "level_completed") {
         const rect = canvas.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
@@ -226,7 +229,6 @@ function renderLevelSelect() {
 
 function render() {
 
-    ctx.save();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -237,19 +239,25 @@ function render() {
     } else if (gameState === "level_completed") {
         renderLevelComplete();
     } else if (gameState === "game" || gameState === "paused") {
-        // Apply camera transformations
-        ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
-        ctx.scale(world.camera.zoom, world.camera.zoom); // Apply zoom
-        ctx.translate(-world.camera.x, -world.camera.y); // Move camera to follow target
-        // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
 
         world.draw(ctx);
 
         // If paused, draw the pause overlay
-        if (gameState === "paused") {
-            ctx.restore();
+        if (gameState === "paused")
             renderPaused();
-
+        else {
+            // Buttons
+            ctx.font = "20px Arial";
+            for (let button of buttons) {
+                if (button.id === "game") {
+                    ctx.fillStyle = "#4BB";
+                    ctx.fillRect(button.x, button.y, button.width, button.height);
+                    ctx.strokeStyle = "#fff";
+                    ctx.strokeRect(button.x, button.y, button.width, button.height);
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+                }
+            }
         }
     }
     ctx.restore();
