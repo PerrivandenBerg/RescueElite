@@ -28,7 +28,9 @@ class Chopper extends Collision {
         this.y_vec = 0;
 
         this.status = FLY;
-        this.controls = { left: false, right: false, up: false, down: false, fire: false };
+
+        // Stores the 
+        this.controls = { up: false, down: false, up_down: 0, left: false, right: false, left_right: 0, fire: false };
 
         window.addEventListener("keydown", (e) => this.handle_key(e, true));
         window.addEventListener("keyup", (e) => this.handle_key(e, false));
@@ -44,6 +46,10 @@ class Chopper extends Collision {
             case "x": this.controls.fire = isPressed; break;
             case "z": this.controls.fire = isPressed; break;
         }
+
+        // Calculates the direction the player goes.
+        this.controls.up_down = (this.controls.up ? -1 : 0) + (this.controls.down ? 1 : 0);
+        this.controls.left_right = (this.controls.left ? -1 : 0) + (this.controls.right ? 1 : 0);
     }
 
     shoot() {
@@ -96,28 +102,28 @@ class Chopper extends Collision {
 
         // Movement + Angles of the chopper based on keyboard input.
         if (this.status !== CRASH) {
-            if (!this.controls.up && !this.controls.down && !this.controls.left
-                && !this.controls.right && this.status !== LAND) {
+            if (this.controls.up_down === 0 && this.controls.left_right === 0
+                && this.status !== LAND) {
                 new_y += deltaTime * globalGravity;
             } else {
-                if (this.controls.up && this.fuel !== 0) {
-                    new_y--;
+                if (this.controls.up_down < 0 && this.fuel !== 0) {
+                    new_y += this.controls.up_down;
                     new_y += deltaTime * globalGravity;
                     if (this.status === LAND) {
                         this.status = FLY;
                         this.y_vec = -0.5;
                     }
                 }
-                if (this.controls.down && this.status !== LAND) {
-                    new_y++;
+                if (this.controls.up_down > 0 && this.status !== LAND) {
+                    new_y += this.controls.up_down;
                     new_y += deltaTime * globalGravity;
                 }
-                if (this.controls.left && this.status !== LAND) {
-                    new_x--;
+                if (this.controls.left_right < 0 && this.status !== LAND) {
+                    new_x += this.controls.left_right;
                     this.angle--;
                 }
-                if (this.controls.right && this.status !== LAND) {
-                    new_x++;
+                if (this.controls.left_right > 0 && this.status !== LAND) {
+                    new_x += this.controls.left_right;
                     this.angle++;
                 }
             }
@@ -143,7 +149,7 @@ class Chopper extends Collision {
 
 
         // Resets the angles of the chopper if there is no movement.
-        if (this.angle >= 7 && !(this.controls.left ^ this.controls.right))
+        if (this.angle >= 7 && this.controls.left_right === 0)
             this.angle--;
 
         if (this.angle >= 18)
@@ -194,7 +200,7 @@ class Chopper extends Collision {
                     this.x >= other.x - 20 && this.x + this.width <= other.x + other.width + 20
                 ) {
                     this.status = LAND;
-                    if (!(this.controls.up && this.fuel !== 0)) {
+                    if (!(this.controls.up_down < 0 && this.fuel !== 0)) {
                         this.y = other.y - this.height;
                         this.move(this.x, this.y);
                     }

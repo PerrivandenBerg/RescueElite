@@ -5,17 +5,18 @@ class Overlay {
     constructor(world, player) {
         this.world = world;
         this.player = player;
-        this.joystick = new Joystick();
+        this.joystick = new Joystick(this.player);
 
     }
 
     // Used to reset the level.
     set_player(player) {
         this.player = player;
+        this.joystick.set_player(player);
     }
 
     update() {
-        this.joystick.update(this.player);
+        this.joystick.update();
 
     }
 

@@ -2,7 +2,9 @@
 
 // Joystick class for mobile movement control.
 class Joystick {
-    constructor() {
+    constructor(player) {
+
+        this.player = player;
 
         this.active = false;
         this.baseX = 0;
@@ -12,8 +14,9 @@ class Joystick {
         this.radius = 40;
         this.stickRadius = 20;
 
-        this.controls = { left: false, right: false, up: false, down: false };
+        this.controls = { left_right: 0, up_down: 0 };
 
+        // Input from both touch screen and mouse input.
         document.addEventListener("touchstart", (e) => this.start(e.touches[0]), false);
         document.addEventListener("touchmove", (e) => this.move(e.touches[0]), false);
         document.addEventListener("touchend", () => this.end(), false);
@@ -23,8 +26,12 @@ class Joystick {
         document.addEventListener("mouseup", () => this.end(), false);
     }
 
+    // Used to reset the level.
+    set_player(player) {
+        this.player = player;
+    }
 
-
+    // Start pressing the button and setting an initial position.
     start(input) {
         const rect = canvas.getBoundingClientRect();
         const x = input.clientX - rect.left;
@@ -33,8 +40,9 @@ class Joystick {
         let screenWidth = canvas.width;
         let screenHeight = canvas.height;
 
+        // Only activate if touch is in the bottom-right area.
         if (x < screenWidth / 2 || y < screenHeight * (1 / 3)) {
-            return; // Only activate if touch is in the bottom-right area
+            return; 
         }
 
         this.active = true;
@@ -42,10 +50,9 @@ class Joystick {
         this.baseY = y;
         this.stickX = this.baseX;
         this.stickY = this.baseY;
-
-        console.log(this.stickX, this.stickY)
     }
 
+    // Moving the joystick while keeping the button pressed.
     move(input) {
         if (!this.active) return;
         const rect = canvas.getBoundingClientRect();
@@ -65,28 +72,29 @@ class Joystick {
         this.stickX = this.baseX + dx;
         this.stickY = this.baseY + dy;
 
-        // Determine control states
-        this.controls.left = dx < -this.radius / 2;
-        this.controls.right = dx > this.radius / 2;
-        this.controls.up = dy < -this.radius / 2;
-        this.controls.down = dy > this.radius / 2;
+        // Determine control states.
+        this.controls.left_right = dx / this.radius;
+        this.controls.up_down = dy / this.radius;
     }
 
+    // Stops moving the joystick and reset everything.
     end() {
         this.active = false;
-        this.controls = { left: false, right: false, up: false, down: false };
+        this.controls = { left_right: 0, up_down: 0 };
+        this.player.controls.left_right = this.controls.left_right;
+        this.player.controls.up_down = this.controls.up_down;
     }
 
-    update(player) {
-        player.controls.left = this.controls.left;
-        player.controls.right = this.controls.right;
-        player.controls.up = this.controls.up;
-        player.controls.down = this.controls.down;
+    update() {
+        if (this.active) {
+            this.player.controls.left_right = this.controls.left_right;
+            this.player.controls.up_down = this.controls.up_down;
+        }
     }
 
     draw(ctx) {
+        // Draws the outer gray-ish circle and the inner white circle.
         if (!this.active) {
-
             ctx.beginPath();
             ctx.arc(650, 300, this.radius, 0, Math.PI * 2, false);
             ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
@@ -98,9 +106,7 @@ class Joystick {
             ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
             ctx.fill();
             ctx.closePath();
-
         } else {
-
             ctx.beginPath();
             ctx.arc(this.baseX, this.baseY, this.radius, 0, Math.PI * 2, false);
             ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
