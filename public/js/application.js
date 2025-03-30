@@ -18,6 +18,22 @@ canvas.width = 800;
 canvas.height = 400;
 
 
+// Full screen.
+document.getElementById("full-screen").addEventListener("click", () => full_screen());
+function full_screen() {
+    let elem = document.documentElement; // Fullscreen the entire window
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) { /* Firefox */
+        elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { /* IE/Edge */
+        elem.msRequestFullscreen();
+    }
+    console.log(canvas.width);
+}
+
 // Loads a level.
 document.getElementById("load-button").addEventListener("click", () => load());
 async function load() {

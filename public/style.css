@@ -5,34 +5,34 @@
     box-sizing: border-box;
 }
 
-/* Centering the content */
-body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    display: flex;
-    align-items: center;
-    overflow: true;
-    border: 0;
-    font-family: 'Arial', sans-serif;
-    height: 100vh;
+/* Fullscreen Styling */
+html, body {
+    width: 100%;
     height: 100%;
-    margin: 0;
+    overflow: hidden; /* Prevents scrolling */
+    background-color: #000; /* Ensures full black background */
+    display: grid;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Canvas Styling */
 #gameCanvas {
-    /*border: 2px solid #000;*/
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    background-color: #000;
+    display: block; /* Removes default inline spacing */
+    width: 800px; /* Fixed width */
+    height: 400px; /* Fixed height */
+    background-color: #000; /* Ensures black canvas background */
 }
+
 /* Style for the button container */
 div {
-    margin-top: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1; /* Ensure buttons are on top */
 }
+
 button {
     padding: 10px 20px;
     margin: 5px;
@@ -44,6 +44,7 @@ button {
     border-radius: 5px;
     transition: background-color 0.3s;
 }
+
 button:hover {
     background-color: #45a049;
 }
