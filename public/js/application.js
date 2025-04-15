@@ -23,7 +23,7 @@ function isMobile() {
     const isMobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
-    return (isMobileAgent || isStandalone) && isTouchCapable;
+    return ((isMobileAgent || isStandalone) && isTouchCapable);
 }
 
 
@@ -118,8 +118,8 @@ const buttons = [
     { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { world.reset_level(); } },
     { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
     { id: "settings", text: "Full Screen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => full_screen() },
-    { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 190, width: 150, height: 50, action: () => load() },
-    { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 260, width: 200, height: 50, action: () => toggleMobileControls() },
+    { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 190, width: 200, height: 50, action: () => toggleMobileControls() },
+    { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
     { id: "settings", text: "Back", x: canvas.width / 2 - 75, y: 330, width: 150, height: 50, action: () => gameState = "menu" },
 ];
 
@@ -141,7 +141,7 @@ function handleInput(x, y) {
     }
 }
 
-// Mouse input
+// Mouse input.
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -149,8 +149,8 @@ canvas.addEventListener("click", (event) => {
     handleInput(x, y);
 });
 
-// Touch input (tap)
-canvas.addEventListener("touchend", (event) => {
+// Touch input.
+canvas.addEventListener("touchstart", (event) => {
     if (event.changedTouches.length === 0) return;
     const rect = canvas.getBoundingClientRect();
     const touch = event.changedTouches[0];
@@ -210,8 +210,9 @@ function renderMenu() {
         }
     }
 }
+
+// Renders the settings menu.
 function renderSettings() {
-    // Renders the settings menu.
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "#222";
@@ -225,6 +226,8 @@ function renderSettings() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === gameState) {
+            if (button.id === "Load" && isMobileAgent)
+                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -379,7 +382,8 @@ async function preload_sprites(paths) {
         for (const path of paths) {
             await store_sprite(path);  // Wait for each sprite to be loaded
         }
-        mobileControlsEnabled = isMobile();
+        mobileControlsEnabled = !isMobile();
+        toggleMobileControls();
         gameLoop();  // Start the game once all sprites are loaded
     } catch (error) {
         console.error("Failed to load some sprites:", error);
