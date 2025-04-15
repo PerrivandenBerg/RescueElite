@@ -103,8 +103,7 @@ document.addEventListener("keydown", (event) => {
 
 const buttons = [
     { id: "menu", text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "level_select" },
-    { id: "menu", text: "Endless Mode Coming Soon...", x: canvas.width / 2 - 150, y: 220, width: 300, height: 50, action: () => { } },
-    { id: "menu", text: "Settings", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "settings" },
+    { id: "menu", text: "Settings", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => gameState = "settings" },
     { id: "level_select", text: "Chopper Training", x: 90, y: 220, width: 200, height: 50, action: () => startGame("levels/chopper_training.json") },
     { id: "level_select", text: "First Rescue", x: 310, y: 220, width: 200, height: 50, action: () => startGame("levels/first_rescue.json") },
     { id: "level_select", text: "Final Extraction", x: 530, y: 220, width: 200, height: 50, action: () => startGame("levels/final_extraction.json") },
@@ -226,7 +225,7 @@ function renderSettings() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === gameState) {
-            if (button.id === "Load" && isMobileAgent)
+            if (button.id === "Upload Level" && isMobile())
                 continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
