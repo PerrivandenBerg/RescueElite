@@ -5,11 +5,12 @@ const path = require("path");
 
 const app = express();
 const PORT = 3001;
+const HOST = '0.0.0.0';
 
-// Serve static files correctly
+// Serve static files correctly.
 app.use(express.static(path.join(__dirname, "public_editor")));
 
-// Start the server
-app.listen(PORT, () => {
+// Start the server.
+app.listen(PORT, HOST, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
 });

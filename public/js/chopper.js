@@ -120,10 +120,12 @@ class Chopper extends Collision {
                 }
                 if (this.controls.left_right < 0 && this.status !== LAND) {
                     new_x += this.controls.left_right;
-                    this.angle--;
+                    if (this.controls.left_right < -0.2)
+                        this.angle--;
                 }
                 if (this.controls.left_right > 0 && this.status !== LAND) {
                     new_x += this.controls.left_right;
+                    if (this.controls.left_right > 0.2)
                     this.angle++;
                 }
             }

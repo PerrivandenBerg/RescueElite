@@ -23,7 +23,7 @@ This game is part of my thesis project on replayability and AI-driven level desi
 ## How to setup?
 This application can be launched in two different ways:
 
-#### Node.js
+### Node.js
 The first method is to use Node.js. Activate the program using the following command:
 ```node server.js```
 The server is opened on port `3000`. Here the game can be played.
@@ -32,7 +32,16 @@ For the level editor the command is as follows:
 ```node server_editor.js```
 And this can be opened on port `3001`.
 
-#### VSCode Live Server
+#### Play locally
+To play the game locally on your network (eg. on your mobile phone), you can use the following setup for Windows 11.
+
+1. Open powershell as administrator and run: `New-NetFirewallRule -DisplayName "Node WSL" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3000`
+2. Get the IP from powershell using `ipconfig` and look under "Wireless LAN adapter WiFi" at `IPv4 Address. . . . . . . . . . . : 192.168.???.???` and copy this address.
+3. Run the node server in WSL linux/ubuntu.
+4. Open the website using `<IPv4 Address>:3000` on other devices which are connected to the same wifi.
+Only do this on a private network.
+
+### VSCode Live Server
 Visual Studio Code has an option to run a html-file in a live server. In order to do so, open the project in VSCode and open the `public/` directory. Right click on the `index.html` file and click on the first option: `Open with Live Server`. This works similar for the level editor which is located in the `public_editor/` directory.
 
 ## Where to Play?

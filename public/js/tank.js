@@ -58,9 +58,11 @@ class Tank extends Collision {
 
     handle_collision() {
         // Flips movement if pit.
-        let list = this.cman.get_colliding_objects(this.x + this.width / 2 + (this.width / 2 - 2) * this.dir, this.y + this.height, 4, 4);
+        let rotate = false;
+
+        let list = this.cman.get_colliding_objects(this.x + this.width / 2 + (this.width / 2 - 2) * this.dir, this.y + this.height + 2, 4, 4);
         if (list.length == 0)
-            this.dir *= -1;
+            rotate = true;
 
         // Flips movement if wall.
         let others = this.check_collisions();
@@ -68,11 +70,12 @@ class Tank extends Collision {
             if (other instanceof Wall || other instanceof Platform ||
                 other instanceof Button || (other instanceof Door && other.id !== BUTTON_PRESSED) ||
                 other instanceof Platform || other instanceof Break
-            ) {
+            )
                 if (other.y >= this.y)
-                    this.dir *= -1;
-            }
+                    rotate = true;
         });
+        if (rotate)
+            this.dir *= -1;
     }
 
     draw(ctx) {

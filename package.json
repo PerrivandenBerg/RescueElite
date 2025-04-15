@@ -1,0 +1,29 @@
+{
+  "name": "RescueElite",
+  "version": "1.0.0",
+  "description": "In this project, we create a website version of the game Fort Apocalypse of the C64. The game is about an helicopter trying to rescue people in an active warzone. To do so, the chopper must shoot enemies and press buttons to open doors. The goal is to rescue the people and escape the level.",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.21.2",
+    "netlify-cli": "^17.17.1",
+    "netlify-lambda": "^2.0.16",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "netlify deploy --prod",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PerrivandenBerg/DyeHard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PerrivandenBerg/DyeHard/issues"
+  },
+  "homepage": "https://github.com/PerrivandenBerg/DyeHard#readme"
+}
