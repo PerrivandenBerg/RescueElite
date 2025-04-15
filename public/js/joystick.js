@@ -14,16 +14,36 @@ class Joystick {
         this.radius = 40;
         this.stickRadius = 20;
 
+        this.joystick_touch_id = null;
+
         this.controls = { left_right: 0, up_down: 0 };
 
         // Input from both touch screen and mouse input.
-        document.addEventListener("touchstart", (e) => this.start(e.touches[0]), false);
-        document.addEventListener("touchmove", (e) => this.move(e.touches[0]), false);
-        document.addEventListener("touchend", () => this.end(), false);
+        document.addEventListener("touchstart", (e) => {
+            for (let touch of e.changedTouches) {
+                this.start(touch, true);
+            }
+            e.preventDefault(); // Prevent default scrolling
+        }, { passive: false });
 
-        document.addEventListener("mousedown", (e) => this.start(e), false);
-        document.addEventListener("mousemove", (e) => this.move(e), false);
-        document.addEventListener("mouseup", () => this.end(), false);
+        document.addEventListener("touchmove", (e) => {
+            for (let touch of e.changedTouches) {
+                this.move(touch, true);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener("touchend", (e) => {
+            for (let touch of e.changedTouches) {
+                this.end(touch, true);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+
+        document.addEventListener("mousedown", (e) => this.start(e, false), false);
+        document.addEventListener("mousemove", (e) => this.move(e, false), false);
+        document.addEventListener("mouseup", (e) => this.end(e, false), false);
     }
 
     // Used to reset the level.
@@ -32,7 +52,7 @@ class Joystick {
     }
 
     // Start pressing the button and setting an initial position.
-    start(input) {
+    start(input, check) {
         const rect = canvas.getBoundingClientRect();
         const x = input.clientX - rect.left;
         const y = input.clientY - rect.top;
@@ -42,8 +62,13 @@ class Joystick {
 
         // Only activate if touch is in the bottom-right area.
         if (x < screenWidth / 2 || y < screenHeight * (1 / 3)) {
-            return; 
+            return;
         }
+
+        // If already tracking a touch, ignore new ones.
+        if (this.joystick_touch_id !== null && check) return;
+
+        this.joystick_touch_id = input.identifier;
 
         this.active = true;
         this.baseX = x;
@@ -53,8 +78,8 @@ class Joystick {
     }
 
     // Moving the joystick while keeping the button pressed.
-    move(input) {
-        if (!this.active) return;
+    move(input, check) {
+        if (!this.active || (input.identifier !== this.joystick_touch_id && check)) return;
         const rect = canvas.getBoundingClientRect();
         let x = input.clientX - rect.left;
         let y = input.clientY - rect.top;
@@ -78,7 +103,10 @@ class Joystick {
     }
 
     // Stops moving the joystick and reset everything.
-    end() {
+    end(input, check) {
+        if (input.identifier !== this.joystick_touch_id && check) return;
+
+        this.joystick_touch_id = null;
         this.active = false;
         this.controls = { left_right: 0, up_down: 0 };
         this.player.controls.left_right = this.controls.left_right;

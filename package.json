@@ -5,13 +5,10 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.21.2",
-    "netlify-cli": "^17.17.1",
-    "netlify-lambda": "^2.0.16",
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {},
   "scripts": {
-    "build": "netlify deploy --prod",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },

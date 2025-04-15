@@ -196,7 +196,6 @@ class World {
         }
 
         this.overlay.update();
-
     }
 
     draw(ctx) {

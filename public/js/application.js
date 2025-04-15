@@ -6,20 +6,36 @@ const ctx = canvas.getContext("2d");
 // Global variables.
 var globalGravity = 9.8;
 
-let lastTime = 0;
-
 const world = new World();
 
-let gameState = "menu"; // "menu" or "game" or "paused" or "level_select" or "next level" or "level_completed"
+let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "level_select" or "next level" or "level_completed"
 
 let levelScore = 0; // Used in the completion screen.
 
 canvas.width = 800;
 canvas.height = 400;
 
+// On mobile?
+let mobileControlsEnabled = isMobile();
+
+function isMobile() {
+    // More precise check: touchscreen + user agent match
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isMobileAgent = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    return hasTouch && isMobileAgent;
+}
+
+function toggleMobileControls() {
+    mobileControlsEnabled = !mobileControlsEnabled;
+    const btn = buttons.find(b => b.id === "settings" && b.text.includes("Mobile Controls"));
+    if (btn) {
+        btn.text = `Mobile Controls: ${mobileControlsEnabled ? "On" : "Off"}`;
+    }
+}
+
 
 // Full screen.
-document.getElementById("full-screen").addEventListener("click", () => full_screen());
 function full_screen() {
     let elem = document.documentElement; // Fullscreen the entire window
     if (elem.requestFullscreen) {
@@ -35,7 +51,6 @@ function full_screen() {
 }
 
 // Loads a level.
-document.getElementById("load-button").addEventListener("click", () => load());
 async function load() {
     const input = document.createElement("input");
     input.type = "file";
@@ -89,6 +104,7 @@ document.addEventListener("keydown", (event) => {
 const buttons = [
     { id: "menu", text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "level_select" },
     { id: "menu", text: "Endless Mode Coming Soon...", x: canvas.width / 2 - 150, y: 220, width: 300, height: 50, action: () => { } },
+    { id: "menu", text: "Settings", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "settings" },
     { id: "level_select", text: "Chopper Training", x: 90, y: 220, width: 200, height: 50, action: () => startGame("levels/chopper_training.json") },
     { id: "level_select", text: "First Rescue", x: 310, y: 220, width: 200, height: 50, action: () => startGame("levels/first_rescue.json") },
     { id: "level_select", text: "Final Extraction", x: 530, y: 220, width: 200, height: 50, action: () => startGame("levels/final_extraction.json") },
@@ -100,29 +116,32 @@ const buttons = [
     { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "menu" },
     { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
     { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { world.reset_level(); } },
-    { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } }
+    { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
+    { id: "settings", text: "Full Screen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => full_screen() },
+    { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 190, width: 150, height: 50, action: () => load() },
+    { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 260, width: 200, height: 50, action: () => toggleMobileControls() },
+    { id: "settings", text: "Back", x: canvas.width / 2 - 75, y: 330, width: 150, height: 50, action: () => gameState = "menu" },
 ];
+
 
 
 // Handle mouse clicks for menu buttons.
 canvas.addEventListener("click", (event) => {
-    if (gameState === "menu" || gameState === "game" || gameState === "level_select" || gameState === "paused" || gameState === "level_completed") {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
 
-        for (let button of buttons) {
-            if (button.id === gameState)
-                if (
-                    mouseX >= button.x &&
-                    mouseX <= button.x + button.width &&
-                    mouseY >= button.y &&
-                    mouseY <= button.y + button.height
-                ) {
-                    button.action();
-                    break;
-                }
-        }
+    for (let button of buttons) {
+        if (button.id === gameState)
+            if (
+                mouseX >= button.x &&
+                mouseX <= button.x + button.width &&
+                mouseY >= button.y &&
+                mouseY <= button.y + button.height
+            ) {
+                button.action();
+                break;
+            }
     }
 });
 
@@ -156,20 +175,41 @@ function renderPaused() {
 function renderMenu() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Background
     ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Title
     ctx.fillStyle = "#fff";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Rescue Elite", canvas.width / 2, 80);
 
-    // Buttons
     ctx.font = "20px Arial";
     for (let button of buttons) {
-        if (button.id === "menu") {
+        if (button.id === gameState) {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+}
+function renderSettings() {
+    // Renders the settings menu.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Settings", canvas.width / 2, 40);
+
+    ctx.font = "20px Arial";
+    for (let button of buttons) {
+        if (button.id === gameState) {
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -250,6 +290,8 @@ function render() {
 
     if (gameState === "menu") {
         renderMenu();
+    } else if (gameState === "settings") {
+        renderSettings();
     } else if (gameState === "level_select") {
         renderLevelSelect();
     } else if (gameState === "level_completed") {
@@ -266,6 +308,8 @@ function render() {
             ctx.font = "20px Arial";
             for (let button of buttons) {
                 if (button.id === "game") {
+                    if (!mobileControlsEnabled && button.text === "Shoot")
+                        continue;
                     ctx.fillStyle = "#4BB";
                     ctx.fillRect(button.x, button.y, button.width, button.height);
                     ctx.strokeStyle = "#fff";
@@ -320,6 +364,7 @@ async function preload_sprites(paths) {
         for (const path of paths) {
             await store_sprite(path);  // Wait for each sprite to be loaded
         }
+        toggleMobileControls();
         gameLoop();  // Start the game once all sprites are loaded
     } catch (error) {
         console.error("Failed to load some sprites:", error);
@@ -384,11 +429,26 @@ function tint_image(ctx, image, color, x, y) {
     ctx.drawImage(tintedImage, x, y);
 }
 
-function gameLoop(time) {
-    let deltaTime = (time - lastTime) / 1000; // Convert ms to seconds.
-    lastTime = time;
-    update((deltaTime || 0));
-    render();
+let accumulator = 0;
+let lastTime = 0;
+const fixedDelta = 1 / 60; // 60 updates per second
+
+function gameLoop(currentTime) {
+    currentTime /= 1000; // Convert to seconds
+    let deltaTime = currentTime - lastTime || 0;
+    if (deltaTime > 0.25) deltaTime = 0.25; // Avoid spiral of death
+    lastTime = currentTime;
+
+    accumulator += deltaTime;
+    console.log(accumulator, fixedDelta);
+
+    // Run game logic in fixed steps (multiple if needed)
+    while (accumulator >= fixedDelta) {
+        update(fixedDelta); // Fixed-step update
+        accumulator -= fixedDelta;
+    }
+
+    render(); // Always render at full refresh rate
     requestAnimationFrame(gameLoop);
 }
 

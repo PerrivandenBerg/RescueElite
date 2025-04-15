@@ -16,8 +16,8 @@ class Overlay {
     }
 
     update() {
-        this.joystick.update();
-
+        if (mobileControlsEnabled)
+            this.joystick.update();
     }
 
     draw(ctx) {
@@ -45,7 +45,8 @@ class Overlay {
 
         ctx.restore();
 
-        this.joystick.draw(ctx);
+        if (mobileControlsEnabled)
+            this.joystick.draw(ctx);
     }
 
 
