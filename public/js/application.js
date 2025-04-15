@@ -16,15 +16,16 @@ canvas.width = 800;
 canvas.height = 400;
 
 // On mobile?
-let mobileControlsEnabled = isMobile();
+let mobileControlsEnabled = true;
 
 function isMobile() {
-    // More precise check: touchscreen + user agent match
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isMobileAgent = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isTouchCapable = navigator.maxTouchPoints > 1 || 'ontouchstart' in window;
+    const isMobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
-    return hasTouch && isMobileAgent;
+    return (isMobileAgent || isStandalone) && isTouchCapable;
 }
+
 
 function toggleMobileControls() {
     mobileControlsEnabled = !mobileControlsEnabled;
@@ -47,7 +48,6 @@ function full_screen() {
     } else if (elem.msRequestFullscreen) { /* IE/Edge */
         elem.msRequestFullscreen();
     }
-    console.log(canvas.width);
 }
 
 // Loads a level.
@@ -124,26 +124,41 @@ const buttons = [
 ];
 
 
-
 // Handle mouse clicks for menu buttons.
-canvas.addEventListener("click", (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
+function handleInput(x, y) {
     for (let button of buttons) {
-        if (button.id === gameState)
+        if (button.id === gameState) {
             if (
-                mouseX >= button.x &&
-                mouseX <= button.x + button.width &&
-                mouseY >= button.y &&
-                mouseY <= button.y + button.height
+                x >= button.x &&
+                x <= button.x + button.width &&
+                y >= button.y &&
+                y <= button.y + button.height
             ) {
                 button.action();
                 break;
             }
+        }
     }
+}
+
+// Mouse input
+canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    handleInput(x, y);
 });
+
+// Touch input (tap)
+canvas.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length === 0) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = event.changedTouches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    handleInput(x, y);
+}, { passive: true });
+
 
 function renderPaused() {
 
@@ -364,7 +379,7 @@ async function preload_sprites(paths) {
         for (const path of paths) {
             await store_sprite(path);  // Wait for each sprite to be loaded
         }
-        toggleMobileControls();
+        mobileControlsEnabled = isMobile();
         gameLoop();  // Start the game once all sprites are loaded
     } catch (error) {
         console.error("Failed to load some sprites:", error);
@@ -440,7 +455,6 @@ function gameLoop(currentTime) {
     lastTime = currentTime;
 
     accumulator += deltaTime;
-    console.log(accumulator, fixedDelta);
 
     // Run game logic in fixed steps (multiple if needed)
     while (accumulator >= fixedDelta) {
