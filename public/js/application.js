@@ -8,12 +8,28 @@ var globalGravity = 9.8;
 
 const world = new World();
 
-let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "level_select" or "next level" or "level_completed"
+let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "level_select" or "level_completed"
 
 let levelScore = 0; // Used in the completion screen.
 
 canvas.width = 800;
 canvas.height = 400;
+
+let exp_counter = 0;
+let levels = ["levels/exp_1.json", "levels/exp_2.json", "levels/exp_3.json", "levels/exp_4.json", "levels/exp_5.json", "levels/exp_6.json", "levels/exp_7.json"]
+
+function next_level() {
+
+    exp_counter++
+    if (exp_counter >= levels.length) {
+        gameState = "menu";
+        return;
+    }
+
+    startGame(levels[exp_counter]);
+
+}
+
 
 // On mobile?
 let mobileControlsEnabled = true;
@@ -104,11 +120,15 @@ document.addEventListener("keydown", (event) => {
 const buttons = [
     { id: "menu", text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "level_select" },
     { id: "menu", text: "Settings", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => gameState = "settings" },
-    { id: "level_select", text: "Chopper Training", x: 90, y: 220, width: 200, height: 50, action: () => startGame("levels/chopper_training.json") },
-    { id: "level_select", text: "First Rescue", x: 310, y: 220, width: 200, height: 50, action: () => startGame("levels/first_rescue.json") },
-    { id: "level_select", text: "Final Extraction", x: 530, y: 220, width: 200, height: 50, action: () => startGame("levels/final_extraction.json") },
-    { id: "level_select", text: "Back", x: 690, y: 340, width: 100, height: 50, action: () => gameState = "menu" },
-    { id: "level_completed", text: "Level Select", x: 310, y: 220, width: 200, height: 50, action: () => gameState = "level_select" },
+    { id: "level_select", text: "1", x: 200, y: 220, width: 50, height: 50, action: () => { exp_counter = -1; next_level() } },
+    { id: "level_select", text: "2", x: 270, y: 220, width: 50, height: 50, action: () => { exp_counter = 0; next_level() } },
+    { id: "level_select", text: "3", x: 340, y: 220, width: 50, height: 50, action: () => { exp_counter = 1; next_level() } },
+    { id: "level_select", text: "4", x: 410, y: 220, width: 50, height: 50, action: () => { exp_counter = 2; next_level() } },
+    { id: "level_select", text: "5", x: 480, y: 220, width: 50, height: 50, action: () => { exp_counter = 3; next_level() } },
+    { id: "level_select", text: "6", x: 550, y: 220, width: 50, height: 50, action: () => { exp_counter = 4; next_level() } },
+    { id: "level_select", text: "7", x: 620, y: 220, width: 50, height: 50, action: () => { exp_counter = 5; next_level() } },
+    { id: "level_select", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
+    { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
     { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
     { id: "paused", text: "Resume", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "game" },
     { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { world.reset_level(); gameState = "game"; } },

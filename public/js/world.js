@@ -26,8 +26,6 @@ class World {
 
         this.level_loop_x = false;
 
-        this.curr_world = "";
-
         if (level === "")
             this.load_from_file("levels/chopper_training.json"); // Load level to play test.
         else
