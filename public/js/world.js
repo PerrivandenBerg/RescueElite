@@ -47,11 +47,11 @@ class World {
 
 
         // Zoom in and out using the mouse wheel.
-        canvas.addEventListener("wheel", (event) => {
-            this.camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
-            this.camera.zoom = Math.max(0.5, Math.min(3, this.camera.zoom)); // Clamp zoom level
-            this.clamp_camera()
-        });
+        // canvas.addEventListener("wheel", (event) => {
+        //     this.camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
+        //     this.camera.zoom = Math.max(0.5, Math.min(3, this.camera.zoom)); // Clamp zoom level
+        //     this.clamp_camera()
+        // });
 
     }
 
@@ -149,7 +149,7 @@ class World {
 
         this.level_loop_x = data.level_loop_x ? data.level_loop_x : false;
         this.camera.loop_x = this.level_loop_x;
-        this.camera.zoom = 2.5;
+        this.camera.zoom = 2;
         this.set_camera(this.chopper.x, this.chopper.y);
 
         for (var obj in this.wobjs) {
@@ -204,7 +204,6 @@ class World {
         ctx.translate(canvas.width / 2, canvas.height / 2); // Move camera to the center of screen
         ctx.scale(world.camera.zoom, world.camera.zoom); // Apply zoom
         ctx.translate(-world.camera.x, -world.camera.y); // Move camera to follow target
-        // ctx.translate(-canvas.width / (2 * camera.zoom), -canvas.height / ( 2 * camera.zoom)); // Move camera to follow target
 
         ctx.fillStyle = colorData['background'];
         ctx.fillRect(0, 0, canvas.width, canvas.height);

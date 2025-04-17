@@ -52,20 +52,23 @@ function toggleMobileControls() {
 }
 
 
-// Full screen.
-function full_screen() {
-    let elem = document.documentElement; // Fullscreen the entire window
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) { /* Firefox */
-        elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { /* IE/Edge */
-        elem.msRequestFullscreen();
+// Fullscreen.
+let isFullScreen = false;
+function toggleFullScreen() {
+    if (!isFullScreen) {
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
     }
+    isFullScreen = !isFullScreen;
 }
-
 // Loads a level.
 async function load() {
     const input = document.createElement("input");
@@ -118,8 +121,9 @@ document.addEventListener("keydown", (event) => {
 
 
 const buttons = [
-    { id: "menu", text: "Play", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "level_select" },
-    { id: "menu", text: "Settings", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => gameState = "settings" },
+    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => gameState = "level_select" },
+    { id: "menu", text: "Fullscreen", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => toggleFullScreen() },
+    { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
     { id: "level_select", text: "1", x: 200, y: 220, width: 50, height: 50, action: () => { exp_counter = -1; next_level() } },
     { id: "level_select", text: "2", x: 270, y: 220, width: 50, height: 50, action: () => { exp_counter = 0; next_level() } },
     { id: "level_select", text: "3", x: 340, y: 220, width: 50, height: 50, action: () => { exp_counter = 1; next_level() } },
@@ -127,7 +131,7 @@ const buttons = [
     { id: "level_select", text: "5", x: 480, y: 220, width: 50, height: 50, action: () => { exp_counter = 3; next_level() } },
     { id: "level_select", text: "6", x: 550, y: 220, width: 50, height: 50, action: () => { exp_counter = 4; next_level() } },
     { id: "level_select", text: "7", x: 620, y: 220, width: 50, height: 50, action: () => { exp_counter = 5; next_level() } },
-    { id: "level_select", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
+    { id: "level_select", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
     { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
     { id: "paused", text: "Resume", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "game" },
@@ -136,10 +140,10 @@ const buttons = [
     { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
     { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { world.reset_level(); } },
     { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
-    { id: "settings", text: "Full Screen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => full_screen() },
+    { id: "settings", text: "Fullscreen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => toggleFullScreen() },
     { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 190, width: 200, height: 50, action: () => toggleMobileControls() },
     { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
-    { id: "settings", text: "Back", x: canvas.width / 2 - 75, y: 330, width: 150, height: 50, action: () => gameState = "menu" },
+    { id: "settings", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
 ];
 
 
@@ -206,20 +210,35 @@ function renderPaused() {
 }
 
 // Renders the menu.
-function renderMenu() {
+let sprite_timer = 0;
+function renderMenu(deltaTime) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Background
     ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Title
     ctx.fillStyle = "#fff";
-    ctx.font = "30px Arial";
+    ctx.font = "80px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Rescue Elite", canvas.width / 2, 80);
+    ctx.shadowColor = "#4BB";
+    ctx.shadowBlur = 20;
+    ctx.fillText("Rescue Elite", canvas.width / 2, 100);
+    ctx.shadowBlur = 0; // Reset shadow
 
-    ctx.font = "20px Arial";
+    // Buttons
     for (let button of buttons) {
-        if (button.id === gameState) {
+        if (button.id === gameState && button.text === "START") {
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+        } else if (button.id === gameState) {
+            ctx.font = "20px Arial";
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -228,7 +247,18 @@ function renderMenu() {
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
         }
     }
+
+    // Right side animated chopper
+    const chopperX = canvas.width - 150;
+    const chopperY = 130;
+    sprite_timer += deltaTime * 10.0;
+    if (sprite_timer >= 2)
+        sprite_timer = 0;
+    ctx.imageSmoothingEnabled = false;
+    let sprite_chopper = load_sprite("chopper_side_fast_" + (sprite_timer >= 1 ? 1 : 2) + "_flip.png");
+    tint_image(ctx, sprite_chopper, colorData['player'], chopperX, chopperY, 4, 4);
 }
+
 
 // Renders the settings menu.
 function renderSettings() {
@@ -320,13 +350,13 @@ function renderLevelSelect() {
 }
 
 
-function render() {
+function render(deltaTime) {
 
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === "menu") {
-        renderMenu();
+        renderMenu(deltaTime);
     } else if (gameState === "settings") {
         renderSettings();
     } else if (gameState === "level_select") {
@@ -462,9 +492,9 @@ function getTintedImage(image, color) {
 }
 
 // Changes the color and draws the sprite.
-function tint_image(ctx, image, color, x, y) {
+function tint_image(ctx, image, color, x, y, xscale = 1, yscale = 1) {
     let tintedImage = getTintedImage(image, color);
-    ctx.drawImage(tintedImage, x, y);
+    ctx.drawImage(tintedImage, x, y, tintedImage.width * xscale, tintedImage.height * xscale);
 }
 
 let accumulator = 0;
@@ -485,7 +515,7 @@ function gameLoop(currentTime) {
         accumulator -= fixedDelta;
     }
 
-    render(); // Always render at full refresh rate
+    render(deltaTime); // Always render at full refresh rate
     requestAnimationFrame(gameLoop);
 }
 

@@ -13,6 +13,6 @@ class Wall extends Collision {
 
     draw(ctx) {
         ctx.fillStyle = colorData['wall'];
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillRect(Math.floor(this.x), Math.floor(this.y), this.width, this.height);
     }
 }

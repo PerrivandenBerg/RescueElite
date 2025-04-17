@@ -23,28 +23,3 @@ html, body {
     height: 400px; /* Fixed height */
     background-color: #000; /* Ensures black canvas background */
 }
-
-/* Style for the button container */
-div {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1; /* Ensure buttons are on top */
-}
-
-button {
-    padding: 10px 20px;
-    margin: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #45a049;
-}
