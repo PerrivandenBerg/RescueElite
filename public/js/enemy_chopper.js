@@ -112,6 +112,7 @@ class EnemyChopper extends Collision {
             if (this.delay === 0) {
                 if (this.hp <= 0) {
                     this.delete();
+                    recordKills();
                     return;
                 }
                 this.status = IDLE;

@@ -13,7 +13,7 @@ class Chopper extends Collision {
         this.z = 100;
 
         this.max_hp = 3;
-        this.hp = this.max_hp;
+        this.hp = 3;
         this.angle = 0;
         this.fuel = 100;
         this.persons_rescued = 0;
@@ -61,13 +61,16 @@ class Chopper extends Collision {
             if (this.angle > 5 && this.angle <= 7) { // Shoot straight forwards.
                 new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 + 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
                 new Bullet(this.x + this.width / 2 + (this.width - 25) * dir, this.y + this.height / 2 - 2, 4 * dir, 0, PLAYER, this.cman, this.wobjs);
+                recordBullet();
             }
             else if (this.angle > 7) { // Shoot down forwards.
                 new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 4, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
                 new Bullet(this.x + this.width / 2 + (this.width - 20) * dir, this.y + this.height / 2 + 0, 3 * dir, 1, PLAYER, this.cman, this.wobjs);
+                recordBullet();
             }
             else { // Shoot down.
                 new Bullet(this.x + this.width / 2, this.y + this.height - 6, 0, 3, PLAYER, this.cman, this.wobjs);
+                recordBullet();
             }
         }
 
@@ -76,6 +79,7 @@ class Chopper extends Collision {
 
     update(deltaTime) {
         let new_x = this.x, new_y = this.y;
+        recordPath(this.x + this.width / 2, this.y + this.height / 2);
 
         // Chopper animation.
         this.sprite_timer += deltaTime * 10.0;
@@ -126,7 +130,7 @@ class Chopper extends Collision {
                 if (this.controls.left_right > 0 && this.status !== LAND) {
                     new_x += this.controls.left_right;
                     if (this.controls.left_right > 0.2)
-                    this.angle++;
+                        this.angle++;
                 }
             }
         }
@@ -241,6 +245,7 @@ class Chopper extends Collision {
             this.status = CRASH;
             this.delay = 30;
             this.hp--;
+            recordDamage(this.x, this.y);
             // If hp === 0: Restart --> Done in world.
 
             this.x_vec = ((this.x + this.width / 2) - x) / 3;

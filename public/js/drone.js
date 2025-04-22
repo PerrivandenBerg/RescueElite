@@ -42,8 +42,8 @@ class Drone extends Collision {
     }
 
     explode() {
-        new Explosion(this.x, this.y, 8, this.wobjs);
         this.delete();
+        recordKills();
     }
 
     update() {

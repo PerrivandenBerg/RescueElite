@@ -20,6 +20,7 @@ class Tank extends Collision {
 
     explode() {
         this.delete();
+        recordKills();
     }
 
     shoot_bullet() {

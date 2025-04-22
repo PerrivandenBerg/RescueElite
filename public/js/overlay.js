@@ -25,10 +25,9 @@ class Overlay {
 
         ctx.scale(2.5, 2.5); // Apply zoom
 
-
         // Draw the hearts in the top-left corner.
         let sprite_heart = load_sprite("life.png");
-        for (let i = 0; i < this.player.max_hp; i++) {
+        for (let i = 0; i < Math.max(this.player.max_hp, this.player.hp); i++) {
             let color = this.player.hp > i ? 'red' : 'darkred';
             tint_image(ctx, sprite_heart, color, 5 + i * 16, 5);
         }
@@ -54,7 +53,4 @@ class Overlay {
         gameState = "paused";
     }
 
-    restart_game() {
-        this.world.reset_level();
-    }
 }

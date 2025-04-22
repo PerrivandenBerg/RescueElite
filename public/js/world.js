@@ -88,6 +88,7 @@ class World {
 
     // Resets the level. (eg. When the player dies)
     reset_level() {
+        recordDeath
         this.import_json(this.data_copy);
     }
 
@@ -147,6 +148,9 @@ class World {
         data.exits.forEach(obj => new Exit(obj.x, obj.y, this.cman, this.wobjs));
         data.hearts.forEach(obj => new Heart(obj.x, obj.y, this.cman, this.wobjs, this.chopper));
 
+        if (data.texts)
+            data.texts.forEach(obj => new Text(obj.x, obj.y, obj.text, this.cman, this.wobjs));
+
         this.level_loop_x = data.level_loop_x ? data.level_loop_x : false;
         this.camera.loop_x = this.level_loop_x;
         this.camera.zoom = 2;
@@ -185,11 +189,12 @@ class World {
         }
 
         // Updates all the objects in the level.
-        for (var obj in this.wobjs) {
-            this.wobjs[obj].update(deltaTime);
-        }
+        for (var obj in this.wobjs)
+            if (this.wobjs[obj])
+                this.wobjs[obj].update(deltaTime);
 
         if (typeof this.chopper !== 'undefined' && ((this.chopper.hp <= 0 && this.chopper.status !== CRASH) || this.chopper.hp < 0)) {
+            recordDeath(this.chopper.x, this.chopper.y, false);
             this.reset_level(); // Restarts the level if the player died.
         }
 

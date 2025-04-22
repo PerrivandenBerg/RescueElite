@@ -8,28 +8,30 @@ var globalGravity = 9.8;
 
 const world = new World();
 
-let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "level_select" or "level_completed"
+let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "rules" or "level_completed"
+let lastState = "menu";
 
 let levelScore = 0; // Used in the completion screen.
 
 canvas.width = 800;
 canvas.height = 400;
 
-let exp_counter = 0;
-let levels = ["levels/exp_1.json", "levels/exp_2.json", "levels/exp_3.json", "levels/exp_4.json", "levels/exp_5.json", "levels/exp_6.json", "levels/exp_7.json"]
+let levels = ["levels/exp_0.json", "levels/exp_1.json", "levels/exp_2.json", "levels/exp_3.json", "levels/exp_4.json", "levels/exp_5.json", "levels/exp_6.json", "levels/exp_7.json"]
 
 function next_level() {
 
-    exp_counter++
-    if (exp_counter >= levels.length) {
-        gameState = "menu";
+    endLevel();
+    gameData.currentLevel++
+    startDataLevel(levels[gameData.currentLevel]);
+    if (gameData.currentLevel >= levels.length) {
+        gameState = "game_completed";
+        gameData.completedGame = true;
         return;
     }
 
-    startGame(levels[exp_counter]);
+    startGame(levels[gameData.currentLevel]);
 
 }
-
 
 // On mobile?
 let mobileControlsEnabled = true;
@@ -121,29 +123,28 @@ document.addEventListener("keydown", (event) => {
 
 
 const buttons = [
-    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => gameState = "level_select" },
+    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { if (!gameData.acceptedRules) { gameState = "rules"; } else { gameData.currentLevel -= 1; next_level() } } },
     { id: "menu", text: "Fullscreen", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => toggleFullScreen() },
     { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
-    { id: "level_select", text: "1", x: 200, y: 220, width: 50, height: 50, action: () => { exp_counter = -1; next_level() } },
-    { id: "level_select", text: "2", x: 270, y: 220, width: 50, height: 50, action: () => { exp_counter = 0; next_level() } },
-    { id: "level_select", text: "3", x: 340, y: 220, width: 50, height: 50, action: () => { exp_counter = 1; next_level() } },
-    { id: "level_select", text: "4", x: 410, y: 220, width: 50, height: 50, action: () => { exp_counter = 2; next_level() } },
-    { id: "level_select", text: "5", x: 480, y: 220, width: 50, height: 50, action: () => { exp_counter = 3; next_level() } },
-    { id: "level_select", text: "6", x: 550, y: 220, width: 50, height: 50, action: () => { exp_counter = 4; next_level() } },
-    { id: "level_select", text: "7", x: 620, y: 220, width: 50, height: 50, action: () => { exp_counter = 5; next_level() } },
-    { id: "level_select", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
-    { id: "level_completed", text: "Menu", x: 310, y: 290, width: 200, height: 50, action: () => gameState = "menu" },
-    { id: "paused", text: "Resume", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => gameState = "game" },
-    { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { world.reset_level(); gameState = "game"; } },
-    { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => gameState = "menu" },
+    { id: "level_completed", text: "Survey", x: 310, y: 290, width: 200, height: 50, action: () => { lastState = "level_completed"; gameState = "survey_confirm"; } },
+    { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
+    { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); gameState = "game"; } },
+    { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
+    { id: "paused", text: "Survey", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => { lastState = "paused"; gameState = "survey_confirm"; } },
+    { id: "paused", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "game" },
     { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
-    { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { world.reset_level(); } },
+    { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); } },
     { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
     { id: "settings", text: "Fullscreen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => toggleFullScreen() },
     { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 190, width: 200, height: 50, action: () => toggleMobileControls() },
     { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
     { id: "settings", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
+    { id: "rules", text: "ACCEPT", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameData.acceptedRules = true; gameData.currentLevel -= 1; next_level() } },
+    { id: "rules", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
+    { id: "survey_confirm", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = lastState },
+    { id: "survey_confirm", text: "CONFIRM", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { endLevel(); fill_in_survey() } },
+    { id: "game_completed", text: "Survey", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { fill_in_survey() } },
 ];
 
 
@@ -183,6 +184,14 @@ canvas.addEventListener("touchstart", (event) => {
 }, { passive: true });
 
 
+
+function fill_in_survey() {
+    // TODO: Survey
+    gameData.clickedSurvey = true;
+    window.open("https://youtube.com", "_blank");
+}
+
+
 function renderPaused() {
 
     // Background overlay
@@ -209,6 +218,148 @@ function renderPaused() {
     }
 }
 
+
+
+function renderGameCompleted() {
+
+    // Background overlay
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Completed!", canvas.width / 2, 80);
+
+    // Buttons
+    for (let button of buttons) {
+        if (button.id === "game_completed") {
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+        }
+    }
+}
+
+
+// Renders the rules.
+function renderRules(deltaTime) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Rules", canvas.width / 2, 40);
+
+
+    // Rules text
+    const rules = [
+        "- You accept that anonymous data will be collected.",
+        "- You agree to participate only once.",
+        "- The experiment will take approximately 20–30 minutes to complete.",
+        "- Please complete the experiment without external help or interruptions.",
+        "- You must be at least 18 years old to participate.",
+        "- If you feel discomfort at any point, you may exit the experiment.",
+        "- All data collected will be stored securely and used only for research purposes.",
+        "- There will be a short anonymous survey once you complete the game,",
+        "   please fill this in."
+    ];
+
+    // Buttons
+    for (let button of buttons) {
+        if (button.id === gameState && button.text === "ACCEPT") {
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+        } else if (button.id === gameState) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+
+    ctx.textAlign = "left";
+    for (let i = 0; i < rules.length; i++) {
+        ctx.font = "20px Arial";
+        ctx.fillText(rules[i], 50, 70 + i * 24);
+    }
+    ctx.textAlign = "center";
+
+}
+
+
+
+
+// Renders the rules.
+function renderSurveyConfirm(deltaTime) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Survey", canvas.width / 2, 40);
+
+
+    // Confirmation text
+    const rules = [
+        "Are you sure you want to proceed to the survey?",
+        "Once confirmed, your gameplay data will be saved,",
+        "and your account will be locked from further play.",
+        "Press 'BACK' to return to the game and continue playing."
+    ];
+
+    // Buttons
+    for (let button of buttons) {
+        if (button.id === gameState && button.text === "CONFIRM") {
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+        } else if (button.id === gameState) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+
+    for (let i = 0; i < rules.length; i++) {
+        ctx.font = "20px Arial";
+        ctx.fillText(rules[i], canvas.width / 2, 90 + i * 24);
+    }
+    ctx.textAlign = "center";
+
+}
+
 // Renders the menu.
 let sprite_timer = 0;
 function renderMenu(deltaTime) {
@@ -229,13 +380,16 @@ function renderMenu(deltaTime) {
 
     // Buttons
     for (let button of buttons) {
-        if (button.id === gameState && button.text === "START") {
+        if (button.id === gameState && (button.text === "START" || button.text === "CONTINUE")) {
             ctx.font = "50px Arial";
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
             ctx.strokeRect(button.x, button.y, button.width, button.height);
             ctx.fillStyle = "#fff";
+            if (gameData.acceptedRules) {
+                button.text = "CONTINUE";
+            }
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
         } else if (button.id === gameState) {
             ctx.font = "20px Arial";
@@ -289,9 +443,10 @@ function renderSettings() {
 
 // Handle the level completion screen.
 function global_complete_level(score) {
-    world.clear();
+    endLevel();
     gameState = "level_completed";
     levelScore = score;
+    world.clear();
 }
 
 // Render the completion screen.
@@ -321,35 +476,6 @@ function renderLevelComplete() {
     }
 }
 
-// Render the level select.
-function renderLevelSelect() {
-
-    // 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Title
-    ctx.fillStyle = "#fff";
-    ctx.font = "30px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Select Level", canvas.width / 2, 80);
-
-    // Buttons
-    ctx.font = "20px Arial";
-    for (let button of buttons) {
-        if (button.id === "level_select") {
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
-        }
-    }
-}
-
-
 function render(deltaTime) {
 
 
@@ -357,10 +483,14 @@ function render(deltaTime) {
 
     if (gameState === "menu") {
         renderMenu(deltaTime);
+    } else if (gameState === "rules") {
+        renderRules();
+    } else if (gameState === "game_completed") {
+        renderGameCompleted();
+    } else if (gameState === "survey_confirm") {
+        renderSurveyConfirm();
     } else if (gameState === "settings") {
         renderSettings();
-    } else if (gameState === "level_select") {
-        renderLevelSelect();
     } else if (gameState === "level_completed") {
         renderLevelComplete();
     } else if (gameState === "game" || gameState === "paused") {
@@ -432,6 +562,7 @@ async function preload_sprites(paths) {
             await store_sprite(path);  // Wait for each sprite to be loaded
         }
         mobileControlsEnabled = !isMobile();
+        gameData.isOnMobile = mobileControlsEnabled;
         toggleMobileControls();
         gameLoop();  // Start the game once all sprites are loaded
     } catch (error) {
