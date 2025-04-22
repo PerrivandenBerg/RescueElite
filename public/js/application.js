@@ -222,8 +222,8 @@ function renderPaused() {
 
 function renderGameCompleted() {
 
-    // Background overlay
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    // Background
+    ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Title
@@ -231,6 +231,12 @@ function renderGameCompleted() {
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Game Completed!", canvas.width / 2, 80);
+
+    // Text
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Thank you for participating", canvas.width / 2, 120);
 
     // Buttons
     for (let button of buttons) {
@@ -481,7 +487,9 @@ function render(deltaTime) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (gameState === "menu") {
+    if (gameData.clickedSurvey) {
+        renderGameCompleted();
+    } else if (gameState === "menu") {
         renderMenu(deltaTime);
     } else if (gameState === "rules") {
         renderRules();
