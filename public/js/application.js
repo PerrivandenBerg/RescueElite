@@ -189,8 +189,10 @@ canvas.addEventListener("touchstart", (event) => {
     if (event.changedTouches.length === 0) return;
     const rect = canvas.getBoundingClientRect();
     const touch = event.changedTouches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+    let x = touch.clientX - rect.left;
+    let y = touch.clientY - rect.top;
+    x = x / rect.width * canvas.width;
+    y = y / rect.height * canvas.height;
     handleInput(x, y);
 }, { passive: true });
 
