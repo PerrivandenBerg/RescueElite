@@ -1,25 +1,26 @@
-/* Basic Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Fullscreen Styling */
 html, body {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Prevents scrolling */
-    background-color: #000; /* Ensures full black background */
-    display: grid;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Canvas Styling */
 #gameCanvas {
-    display: block; /* Removes default inline spacing */
-    width: 800px; /* Fixed width */
-    height: 400px; /* Fixed height */
-    background-color: #000; /* Ensures black canvas background */
+    aspect-ratio: 2 / 1;
+    width: 100vw;
+    height: auto;
+    max-height: 100vh;
+    max-width: 100vw;
+    background-color: #000;
 }

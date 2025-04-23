@@ -54,8 +54,8 @@ class Joystick {
     // Start pressing the button and setting an initial position.
     start(input, check) {
         const rect = canvas.getBoundingClientRect();
-        const x = input.clientX - rect.left;
-        const y = input.clientY - rect.top;
+        let x = input.clientX - rect.left;
+        let y = input.clientY - rect.top;
 
         let screenWidth = canvas.width;
         let screenHeight = canvas.height;
@@ -71,6 +71,9 @@ class Joystick {
         this.joystick_touch_id = input.identifier;
 
         this.active = true;
+
+        x = x / rect.width * canvas.width;
+        y = y / rect.height * canvas.height;
         this.baseX = x;
         this.baseY = y;
         this.stickX = this.baseX;
@@ -83,6 +86,9 @@ class Joystick {
         const rect = canvas.getBoundingClientRect();
         let x = input.clientX - rect.left;
         let y = input.clientY - rect.top;
+
+        x = x / rect.width * canvas.width;
+        y = y / rect.height * canvas.height;
 
         let dx = x - this.baseX;
         let dy = y - this.baseY;
@@ -122,6 +128,7 @@ class Joystick {
 
     draw(ctx) {
         // Draws the outer gray-ish circle and the inner white circle.
+
         if (!this.active) {
             ctx.beginPath();
             ctx.arc(650, 300, this.radius, 0, Math.PI * 2, false);

@@ -102,6 +102,7 @@ class Chopper extends Collision {
             }
         } else {
             this.delay = 0;
+            this.draw_color = this.color;
         }
 
         // Movement + Angles of the chopper based on keyboard input.

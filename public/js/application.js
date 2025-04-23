@@ -44,7 +44,6 @@ function isMobile() {
     return ((isMobileAgent || isStandalone) && isTouchCapable);
 }
 
-
 function toggleMobileControls() {
     mobileControlsEnabled = !mobileControlsEnabled;
     const btn = buttons.find(b => b.id === "settings" && b.text.includes("Mobile Controls"));
@@ -53,24 +52,34 @@ function toggleMobileControls() {
     }
 }
 
-
 // Fullscreen.
 let isFullScreen = false;
+let fullScreenSupported = false;
 function toggleFullScreen() {
+    let elem = document.documentElement;
+
     if (!isFullScreen) {
-        let elem = document.documentElement;
-        if (elem.requestFullscreen) elem.requestFullscreen();
-        else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
-        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-        else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                isFullScreen = true;
+            }).catch((err) => {
+                console.warn("Fullscreen request failed:", err);
+            });
+        } else {
+            console.warn("Fullscreen not supported on this device/browser.");
+            window.alert("Fullscreen not supported on this device/browser.");
+        }
     } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.msExitFullscreen) document.msExitFullscreen();
+        if (document.exitFullscreen) {
+            document.exitFullscreen().then(() => {
+                isFullScreen = false;
+            }).catch((err) => {
+                console.warn("Exiting fullscreen failed:", err);
+            });
+        }
     }
-    isFullScreen = !isFullScreen;
 }
+
 // Loads a level.
 async function load() {
     const input = document.createElement("input");
@@ -100,7 +109,6 @@ async function load() {
     input.click();
 }
 
-
 function update(deltaTime) {
     if (gameState === "game")
         world.update(deltaTime);
@@ -128,7 +136,7 @@ const buttons = [
     { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
     { id: "level_completed", text: "Survey", x: 310, y: 290, width: 200, height: 50, action: () => { lastState = "level_completed"; gameState = "survey_confirm"; } },
-    { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
+    { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => { next_level(); gameState = "menu" } },
     { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); gameState = "game"; } },
     { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
     { id: "paused", text: "Survey", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => { lastState = "paused"; gameState = "survey_confirm"; } },
@@ -152,6 +160,7 @@ const buttons = [
 function handleInput(x, y) {
     for (let button of buttons) {
         if (button.id === gameState) {
+            console.log(button.x, button.y, x, y);
             if (
                 x >= button.x &&
                 x <= button.x + button.width &&
@@ -168,8 +177,10 @@ function handleInput(x, y) {
 // Mouse input.
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    x = x / rect.width * canvas.width;
+    y = y / rect.height * canvas.height;
     handleInput(x, y);
 });
 
@@ -464,8 +475,15 @@ function renderLevelComplete() {
     ctx.fillStyle = "#fff";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
+    const level = gameData.levels[gameData.levels.length - 1];
+
     ctx.fillText("Level Complete!", canvas.width / 2, 100);
-    ctx.fillText("Score: " + levelScore, canvas.width / 2, 150);
+
+    ctx.font = "16px Arial";
+    ctx.fillText("People Rescued: " + level.rescued + "/" + world.max_persons, canvas.width / 2, 130);
+    ctx.fillText("Enemies Defeated: " + level.enemiesKilled, canvas.width / 2, 150);
+    ctx.fillText("Death Count: " + level.deaths.length, canvas.width / 2, 170);
+    ctx.fillText("Time: " + Math.round(level.playtime / 100) / 10 + "s", canvas.width / 2, 190);
 
     // Buttons
     ctx.font = "20px Arial";
