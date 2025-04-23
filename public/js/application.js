@@ -186,9 +186,8 @@ canvas.addEventListener("touchstart", (event) => {
 
 
 function fill_in_survey() {
-    // TODO: Survey
     gameData.clickedSurvey = true;
-    window.open("https://youtube.com", "_blank");
+    window.open("https://leidenuniv.eu.qualtrics.com/jfe/form/SV_0UOzCpWLBrSV5qK", "_blank");
 }
 
 
@@ -484,10 +483,12 @@ function renderLevelComplete() {
 
 function render(deltaTime) {
 
+    console.log(gameState);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameData.clickedSurvey) {
+        gameState = "game_completed";
         renderGameCompleted();
     } else if (gameState === "menu") {
         renderMenu(deltaTime);
