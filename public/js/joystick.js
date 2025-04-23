@@ -57,11 +57,11 @@ class Joystick {
         let x = input.clientX - rect.left;
         let y = input.clientY - rect.top;
 
-        let screenWidth = canvas.width;
-        let screenHeight = canvas.height;
+        x = x / rect.width * canvas.width;
+        y = y / rect.height * canvas.height;
 
         // Only activate if touch is in the bottom-right area.
-        if (x < screenWidth / 2 || y < screenHeight * (1 / 3)) {
+        if (x < canvas.width / 2 || y < canvas.height * (1 / 3)) {
             return;
         }
 
@@ -72,8 +72,6 @@ class Joystick {
 
         this.active = true;
 
-        x = x / rect.width * canvas.width;
-        y = y / rect.height * canvas.height;
         this.baseX = x;
         this.baseY = y;
         this.stickX = this.baseX;
