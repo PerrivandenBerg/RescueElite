@@ -62,6 +62,7 @@ class Tank extends Collision {
         let rotate = false;
 
         let list = this.cman.get_colliding_objects(this.x + this.width / 2 + (this.width / 2 - 2) * this.dir, this.y + this.height + 2, 4, 4);
+        list = list.filter(l => !(l instanceof Door));
         if (list.length == 0)
             rotate = true;
 

@@ -37,7 +37,7 @@ class Person extends Collision {
         }
         if (this.help_timer <= 0) {
             this.help_timer = 80;
-            new PersonHelp(this.x + this.width/2, this.y - 4, this.cman, this.wobjs);
+            new PersonHelp(this.x + this.width / 2, this.y - 4, this.cman, this.wobjs);
         }
 
 
@@ -69,7 +69,8 @@ class Person extends Collision {
     handle_collision() {
         // Flips movement if pit.
         let list = this.cman.get_colliding_objects(this.x + this.width / 2 + (this.width / 2 + 5) * this.dir, this.y + this.height, 4, 4);
-        if (list.length == 0) {
+        list = list.filter(l => !(l instanceof Door));
+        if (list.length === 0) {
             this.dir *= -1;
             this.walk_delay = Math.random() * 4 + 2;
         }

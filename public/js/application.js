@@ -153,6 +153,7 @@ const buttons = [
     { id: "survey_confirm", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = lastState },
     { id: "survey_confirm", text: "CONFIRM", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { endLevel(); fill_in_survey() } },
     { id: "game_completed", text: "Survey", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { fill_in_survey() } },
+    { id: "game_completed", text: "Download Data", x: canvas.width - 200, y: canvas.height - 60, width: 190, height: 50, action: () => { download_game_data() } },
 ];
 
 
@@ -197,6 +198,15 @@ canvas.addEventListener("touchstart", (event) => {
 }, { passive: true });
 
 
+function download_game_data() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameData, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "game_data.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
 
 function fill_in_survey() {
     gameData.clickedSurvey = true;
@@ -240,7 +250,7 @@ function renderGameCompleted() {
 
     // Title
     ctx.fillStyle = "#fff";
-    ctx.font = "30px Arial";
+    ctx.font = "40px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Game Completed!", canvas.width / 2, 80);
 
@@ -248,11 +258,11 @@ function renderGameCompleted() {
     ctx.fillStyle = "#fff";
     ctx.font = "20px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Thank you for participating", canvas.width / 2, 120);
+    ctx.fillText("Thank you for participating", canvas.width / 2, 125);
 
     // Buttons
     for (let button of buttons) {
-        if (button.id === "game_completed") {
+        if (button.id === "game_completed" && button.text === "Survey") {
             ctx.font = "50px Arial";
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
@@ -260,6 +270,14 @@ function renderGameCompleted() {
             ctx.strokeRect(button.x, button.y, button.width, button.height);
             ctx.fillStyle = "#fff";
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+        } else if (button.id === "game_completed") {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
         }
     }
 }
