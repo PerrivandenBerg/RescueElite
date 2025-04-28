@@ -1,5 +1,3 @@
-
-/* Center the buttons above the canvas */
 body {
     margin: 0;
     padding: 0;
@@ -10,10 +8,9 @@ body {
     justify-content: flex-start;
     background-color: #f0f0f0;
 }
-/* Style for the button container */
 div {
     margin-top: 20px;
-    z-index: 1; /* Ensure buttons are on top */
+    z-index: 1;
 }
 button {
     padding: 10px 20px;

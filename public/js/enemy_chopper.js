@@ -24,7 +24,7 @@ class EnemyChopper extends Collision {
 
         this.status = IDLE;
 
-        this.max_hp = 3;
+        this.max_hp = 1;
         this.hp = this.max_hp;
 
         // Shooting
@@ -37,13 +37,6 @@ class EnemyChopper extends Collision {
         let new_x = this.x, new_y = this.y;
         new_x += tx;
         new_y += ty;
-
-        if (tx > 0) {
-            this.angle++;
-        }
-        else if (tx < 0) {
-            this.angle--;
-        }
         this.move(new_x, new_y);
     }
 
@@ -95,6 +88,15 @@ class EnemyChopper extends Collision {
 
         if ((dist_player < MIN_FOLLOW_DISTANCE_ECHOP || !can_see_player) && this.status === FOLLOW)
             this.status = IDLE; // Too close -> idle.
+
+        if (can_see_player && this.status === IDLE) {
+            if (this.player.x > this.x && this.angle < 6) {
+                this.angle++;
+            }
+            else if (this.player.x < this.x && this.angle > -6) {
+                this.angle--;
+            }
+        }
 
         // Animation.
         this.sprite_timer += deltaTime * 10.0;

@@ -7,7 +7,7 @@ let colorData = {
     'enemy_angry': '#FF901E',
     'platform': 'white',
     'person': '#F5F5F5',
-    'fuel_station': '#A5A5A5',
+    'fuel_station': '#A5A5F5',
     'explosion': '#F5F5F5',
     'player': '#B8C76F',
     'bullet': '#F5F5F5',

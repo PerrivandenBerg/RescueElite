@@ -244,16 +244,16 @@ class Chopper extends Collision {
 
         if (this.status !== CRASH) {
             this.status = CRASH;
-            this.delay = 30;
+            this.delay = 40;
             this.hp--;
             recordDamage(this.x, this.y);
             // If hp === 0: Restart --> Done in world.
 
-            this.x_vec = ((this.x + this.width / 2) - x) / 3;
-            this.y_vec = ((this.y + this.height / 2) - y) / 3;
+            this.x_vec = ((this.x + this.width / 2) - x) / 4;
+            this.y_vec = ((this.y + this.height / 2) - y) / 4;
         } else {
-            this.x_vec = ((this.x + this.width / 2) - x) / 6;
-            this.y_vec = ((this.y + this.height / 2) - y) / 6;
+            this.x_vec = ((this.x + this.width / 2) - x) / 8;
+            this.y_vec = ((this.y + this.height / 2) - y) / 8;
         }
     }
 

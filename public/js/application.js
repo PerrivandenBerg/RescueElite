@@ -135,18 +135,18 @@ const buttons = [
     { id: "menu", text: "Fullscreen", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => toggleFullScreen() },
     { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
-    { id: "level_completed", text: "Survey", x: 310, y: 290, width: 200, height: 50, action: () => { lastState = "level_completed"; gameState = "survey_confirm"; } },
+    { id: "level_completed", text: "Survey", x: 310, y: 290, width: 200, height: 50, action: () => { if (gameData.currentLevel >= 2) { lastState = "level_completed"; gameState = "survey_confirm" }; } },
     { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => { next_level(); gameState = "menu" } },
     { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); gameState = "game"; } },
     { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
-    { id: "paused", text: "Survey", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => { lastState = "paused"; gameState = "survey_confirm"; } },
+    { id: "paused", text: "Survey", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => { if (gameData.currentLevel >= 2) { lastState = "paused"; gameState = "survey_confirm"; } } },
     { id: "paused", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "game" },
     { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
     { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); } },
     { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
     { id: "settings", text: "Fullscreen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => toggleFullScreen() },
     { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 190, width: 200, height: 50, action: () => toggleMobileControls() },
-    { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
+    // { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
     { id: "settings", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "rules", text: "ACCEPT", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameData.acceptedRules = true; gameData.currentLevel -= 1; next_level() } },
     { id: "rules", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
@@ -161,7 +161,6 @@ const buttons = [
 function handleInput(x, y) {
     for (let button of buttons) {
         if (button.id === gameState) {
-            console.log(button.x, button.y, x, y);
             if (
                 x >= button.x &&
                 x <= button.x + button.width &&
@@ -198,6 +197,29 @@ canvas.addEventListener("touchstart", (event) => {
 }, { passive: true });
 
 
+function isAppleDevice() {
+    return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+}
+
+if (isAppleDevice()) {
+    document.getElementById("fullscreenButton").style.display = "block";
+    document.getElementById("downloadButton").style.display = "block";
+
+    const controlsDiv = document.getElementById('controls');
+    if (isAppleDevice()) {
+        controlsDiv.style.display = 'flex';
+    }
+    document.getElementById("fullscreenButton").addEventListener("click", () => {
+        const canvas = document.getElementById("gameCanvas"); // Or whatever your canvas id is
+        toggleFullScreen();
+    });
+
+    document.getElementById("downloadButton").addEventListener("click", () => {
+        download_game_data();
+    });
+}
+
+
 function download_game_data() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameData, null, 2));
     const downloadAnchor = document.createElement("a");
@@ -230,6 +252,8 @@ function renderPaused() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === "paused") {
+            if (button.text === "Survey" && gameData.currentLevel < 2)
+                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -253,6 +277,17 @@ function renderGameCompleted() {
     ctx.font = "40px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Game Completed!", canvas.width / 2, 80);
+
+
+    // Credits
+    ctx.fillStyle = "#fff";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Contact info: s2912457@vuw.leidenuniv.nl", 10, canvas.height - 10);
+    ctx.fillText("Created by Perri van den Berg", 10, canvas.height - 34);
+    ctx.fillText("Based on the game Fort Apocalypse", 10, canvas.height - 22);
+    ctx.textAlign = "center";
+
 
     // Text
     ctx.fillStyle = "#fff";
@@ -346,6 +381,7 @@ function renderRules(deltaTime) {
 
 // Renders the rules.
 function renderSurveyConfirm(deltaTime) {
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Background
@@ -377,6 +413,7 @@ function renderSurveyConfirm(deltaTime) {
             ctx.strokeRect(button.x, button.y, button.width, button.height);
             ctx.fillStyle = "#fff";
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
+
         } else if (button.id === gameState) {
             ctx.font = "20px Arial";
             ctx.fillStyle = "#4BB";
@@ -413,6 +450,15 @@ function renderMenu(deltaTime) {
     ctx.shadowBlur = 20;
     ctx.fillText("Rescue Elite", canvas.width / 2, 100);
     ctx.shadowBlur = 0; // Reset shadow
+
+    // Credits
+    ctx.fillStyle = "#fff";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Contact info: s2912457@vuw.leidenuniv.nl", 10, canvas.height - 10);
+    ctx.fillText("Created by Perri van den Berg", 10, canvas.height - 34);
+    ctx.fillText("Based on the game Fort Apocalypse", 10, canvas.height - 22);
+    ctx.textAlign = "center";
 
     // Buttons
     for (let button of buttons) {
@@ -509,6 +555,8 @@ function renderLevelComplete() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === "level_completed") {
+            if (button.text === "Survey" && gameData.currentLevel < 2)
+                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -520,8 +568,6 @@ function renderLevelComplete() {
 }
 
 function render(deltaTime) {
-
-    console.log(gameState);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -647,16 +693,20 @@ function getTintedImage(image, color) {
     let offCanvas = document.createElement("canvas");
     offCanvas.width = image.width;
     offCanvas.height = image.height;
-    let offCtx = offCanvas.getContext("2d");
+    let offCtx = offCanvas.getContext("2d", { willReadFrequently: true, alpha: true, premultipliedAlpha: false });
 
     offCtx.drawImage(image, 0, 0);
     let imageData = offCtx.getImageData(0, 0, image.width, image.height);
     let data = imageData.data;
     let new_rgb = color_to_rgb(color);
 
+
     for (let i = 0; i < data.length; i += 4) {
         let alpha = data[i + 3];
-        if (data[i] >= 250 && data[i + 1] >= 250 && data[i + 2] >= 250) {
+        const tolerance = 10;
+        if ((tolerance + data[i]) % 255 <= tolerance * 2 &&
+            (tolerance + data[i + 1]) % 255 <= tolerance * 2 &&
+            (tolerance + data[i + 2]) % 255 <= tolerance * 2) {
             data[i] = new_rgb.r;
             data[i + 1] = new_rgb.g;
             data[i + 2] = new_rgb.b;

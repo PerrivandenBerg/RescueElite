@@ -26,12 +26,10 @@ if (!gameData) {
 // Auto save.
 setInterval(() => {
     saveToLocal();
-    syncToServer(gameData);
 }, 30000); // Every 30 seconds save locally and to the server.
 
 window.onbeforeunload = () => {
     saveToLocal();
-    syncToServer(gameData);
 };
 
 
@@ -69,6 +67,7 @@ function recordDeath(x, y, restart) {
     const level = getCurrentLevel();
     level.deaths.push({ x, y, path: level.pathTaken, timestamp: Date.now(), restart: restart });
     level.pathTaken = [];
+    level.rescued = 0;
 }
 
 function recordDamage(x, y) {
@@ -108,12 +107,3 @@ function loadFromLocal() {
     }
     return null;
 }
-
-async function syncToServer(data) {
-    await fetch('/save-game-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-}
-
