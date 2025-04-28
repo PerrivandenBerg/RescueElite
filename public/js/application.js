@@ -198,12 +198,14 @@ canvas.addEventListener("touchstart", (event) => {
 
 
 function isAppleDevice() {
+    return true;
     return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
 }
 
 if (isAppleDevice()) {
     document.getElementById("fullscreenButton").style.display = "block";
     document.getElementById("downloadButton").style.display = "block";
+    document.getElementById("surveyButton").style.display = "block";
 
     const controlsDiv = document.getElementById('controls');
     if (isAppleDevice()) {
@@ -215,7 +217,20 @@ if (isAppleDevice()) {
     });
 
     document.getElementById("downloadButton").addEventListener("click", () => {
-        download_game_data();
+        if (!gameData.clickedSurvey) {
+            window.alert("You can press this button after opening the survey.")
+        } else
+            download_game_data();
+    });
+
+    document.getElementById("surveyButton").addEventListener("click", () => {
+        if (gameData.currentLevel < 2) {
+            window.alert("Complete some levels first before you open the survey.")
+        } else if (gameState !== "survey_confirm") {
+            lastState = "level_completed";
+            gameState = "survey_confirm";
+        } else
+            fill_in_survey();
     });
 }
 
