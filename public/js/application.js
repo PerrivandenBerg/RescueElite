@@ -197,12 +197,6 @@ canvas.addEventListener("touchstart", (event) => {
 }, { passive: true });
 
 // Buttons in case the canvas is not supported.
-document.getElementById("fullscreenButton").style.display = "block";
-document.getElementById("downloadButton").style.display = "block";
-document.getElementById("surveyButton").style.display = "block";
-const controlsDiv = document.getElementById('controls');
-controlsDiv.style.display = 'flex';
-
 
 function handle_download_game_data() {
     if (!gameData.clickedSurvey) {
@@ -210,6 +204,7 @@ function handle_download_game_data() {
     } else
         download_game_data();
 }
+
 function handle_fill_in_survey() {
     if (gameData.currentLevel < 2) {
         window.alert("Complete some levels first before you open the survey.")
