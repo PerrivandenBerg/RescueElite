@@ -196,43 +196,31 @@ canvas.addEventListener("touchstart", (event) => {
     handleInput(x, y);
 }, { passive: true });
 
-
-function isAppleDevice() {
-    return true;
-    return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
-}
-
-if (isAppleDevice()) {
-    document.getElementById("fullscreenButton").style.display = "block";
-    document.getElementById("downloadButton").style.display = "block";
-    document.getElementById("surveyButton").style.display = "block";
-
-    const controlsDiv = document.getElementById('controls');
-    if (isAppleDevice()) {
-        controlsDiv.style.display = 'flex';
-    }
-    document.getElementById("fullscreenButton").addEventListener("click", () => {
-        const canvas = document.getElementById("gameCanvas"); // Or whatever your canvas id is
-        toggleFullScreen();
-    });
-
-    document.getElementById("downloadButton").addEventListener("click", () => {
-        if (!gameData.clickedSurvey) {
-            window.alert("You can press this button after opening the survey.")
-        } else
-            download_game_data();
-    });
-
-    document.getElementById("surveyButton").addEventListener("click", () => {
-        if (gameData.currentLevel < 2) {
-            window.alert("Complete some levels first before you open the survey.")
-        } else if (gameState !== "survey_confirm") {
-            lastState = "level_completed";
-            gameState = "survey_confirm";
-        } else
-            fill_in_survey();
-    });
-}
+// Buttons in case the canvas is not supported.
+document.getElementById("fullscreenButton").style.display = "block";
+document.getElementById("downloadButton").style.display = "block";
+document.getElementById("surveyButton").style.display = "block";
+const controlsDiv = document.getElementById('controls');
+controlsDiv.style.display = 'flex';
+document.getElementById("fullscreenButton").addEventListener("click", () => {
+    const canvas = document.getElementById("gameCanvas"); // Or whatever your canvas id is
+    toggleFullScreen();
+});
+document.getElementById("downloadButton").addEventListener("click", () => {
+    if (!gameData.clickedSurvey) {
+        window.alert("You can press this button after opening the survey.")
+    } else
+        download_game_data();
+});
+document.getElementById("surveyButton").addEventListener("click", () => {
+    if (gameData.currentLevel < 2) {
+        window.alert("Complete some levels first before you open the survey.")
+    } else if (gameState !== "survey_confirm" && gameState !== "game_completed") {
+        lastState = "level_completed";
+        gameState = "survey_confirm";
+    } else
+        fill_in_survey();
+});
 
 
 function download_game_data() {
