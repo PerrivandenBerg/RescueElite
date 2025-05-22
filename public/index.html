@@ -10,14 +10,8 @@
 <body>
 
     <div id="controls">
-        <div class="button-text">    
-            <p>Please use these buttons if the buttons in the game do not work (e.g., if you are on Apple):</p>
-        </div>
-        <div class="button-group">
-            <button id="fullscreenButton" onpointerdown="toggleFullScreen();">Toggle Fullscreen</button>
-            <button id="downloadButton" onpointerdown="handle_download_game_data();">Download Game Data</button>
-            <button id="surveyButton" onpointerdown="handle_fill_in_survey();">Start Survey</button>
-        </div>
+        <button id="fullscreenButton" onpointerdown="toggleFullScreen();">Toggle Fullscreen</button>
+        <button id="resetData" onpointerdown="resetData();">Reset Data</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>

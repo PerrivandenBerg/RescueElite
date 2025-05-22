@@ -8,7 +8,7 @@ var globalGravity = 9.8;
 
 const world = new World();
 
-let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "rules" or "level_completed"
+let gameState = "menu"; // "menu" or "settings" or "game" or "paused" or "level_completed"
 let lastState = "menu";
 
 let levelScore = 0; // Used in the completion screen.
@@ -131,29 +131,22 @@ document.addEventListener("keydown", (event) => {
 
 
 const buttons = [
-    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { if (!gameData.acceptedRules) { gameState = "rules"; } else { gameData.currentLevel -= 1; next_level() } } },
+    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameData.currentLevel -= 1; next_level() } },
     { id: "menu", text: "Fullscreen", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => toggleFullScreen() },
     { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
-    { id: "level_completed", text: "Survey", x: 310, y: 290, width: 200, height: 50, action: () => { if (gameData.currentLevel >= 2) { lastState = "level_completed"; gameState = "survey_confirm" }; } },
     { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => { next_level(); gameState = "menu" } },
     { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); gameState = "game"; } },
     { id: "paused", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
-    { id: "paused", text: "Survey", x: canvas.width / 2 - 75, y: 290, width: 150, height: 50, action: () => { if (gameData.currentLevel >= 2) { lastState = "paused"; gameState = "survey_confirm"; } } },
     { id: "paused", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "game" },
     { id: "game", text: "Pause", x: canvas.width - 90, y: 10, width: 80, height: 50, action: () => gameState = "paused" },
     { id: "game", text: "Restart", x: canvas.width - 180, y: 10, width: 80, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); } },
     { id: "game", text: "Shoot", x: 30, y: canvas.height - 80, width: 70, height: 50, action: () => { world.chopper.shoot(); } },
     { id: "settings", text: "Fullscreen", x: canvas.width / 2 - 75, y: 120, width: 150, height: 50, action: () => toggleFullScreen() },
     { id: "settings", text: "Mobile Controls: On", x: canvas.width / 2 - 100, y: 190, width: 200, height: 50, action: () => toggleMobileControls() },
-    // { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
+    { id: "settings", text: "Upload Level", x: canvas.width / 2 - 75, y: 260, width: 150, height: 50, action: () => load() },
     { id: "settings", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
-    { id: "rules", text: "ACCEPT", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameData.acceptedRules = true; gameData.currentLevel -= 1; next_level() } },
-    { id: "rules", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
-    { id: "survey_confirm", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = lastState },
-    { id: "survey_confirm", text: "CONFIRM", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { endLevel(); fill_in_survey() } },
-    { id: "game_completed", text: "Survey", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { fill_in_survey() } },
-    { id: "game_completed", text: "Download Data", x: canvas.width - 200, y: canvas.height - 60, width: 190, height: 50, action: () => { download_game_data() } },
+    { id: "game_completed", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
 ];
 
 
@@ -196,42 +189,6 @@ canvas.addEventListener("touchstart", (event) => {
     handleInput(x, y);
 }, { passive: true });
 
-// Buttons in case the canvas is not supported.
-
-function handle_download_game_data() {
-    if (!gameData.clickedSurvey) {
-        window.alert("You can press this button after opening the survey.")
-    } else
-        download_game_data();
-}
-
-function handle_fill_in_survey() {
-    if (gameData.currentLevel < 2) {
-        window.alert("Complete some levels first before you open the survey.")
-    } else if (gameState !== "survey_confirm" && gameState !== "game_completed") {
-        lastState = "level_completed";
-        gameState = "survey_confirm";
-    } else
-        fill_in_survey();
-}
-
-
-function download_game_data() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameData, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "game_data.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-}
-
-function fill_in_survey() {
-    gameData.clickedSurvey = true;
-    window.open("https://leidenuniv.eu.qualtrics.com/jfe/form/SV_0UOzCpWLBrSV5qK", "_blank");
-}
-
-
 function renderPaused() {
 
     // Background overlay
@@ -248,8 +205,6 @@ function renderPaused() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === "paused") {
-            if (button.text === "Survey" && gameData.currentLevel < 2)
-                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -293,15 +248,7 @@ function renderGameCompleted() {
 
     // Buttons
     for (let button of buttons) {
-        if (button.id === "game_completed" && button.text === "Survey") {
-            ctx.font = "50px Arial";
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
-        } else if (button.id === "game_completed") {
+        if (button.id === "game_completed") {
             ctx.font = "20px Arial";
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
@@ -311,122 +258,6 @@ function renderGameCompleted() {
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
         }
     }
-}
-
-
-// Renders the rules.
-function renderRules(deltaTime) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Background
-    ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Title
-    ctx.fillStyle = "#fff";
-    ctx.font = "40px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Rules", canvas.width / 2, 40);
-
-
-    // Rules text
-    const rules = [
-        "- You accept that anonymous data will be collected.",
-        "- You agree to participate only once.",
-        "- The experiment will take approximately 20–30 minutes to complete.",
-        "- Please complete the experiment without external help or interruptions.",
-        "- You must be at least 18 years old to participate.",
-        "- If you feel discomfort at any point, you may exit the experiment.",
-        "- All data collected will be stored securely and used only for research purposes.",
-        "- There will be a short anonymous survey once you complete the game,",
-        "   please fill this in."
-    ];
-
-    // Buttons
-    for (let button of buttons) {
-        if (button.id === gameState && button.text === "ACCEPT") {
-            ctx.font = "50px Arial";
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
-        } else if (button.id === gameState) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
-        }
-    }
-
-    ctx.textAlign = "left";
-    for (let i = 0; i < rules.length; i++) {
-        ctx.font = "20px Arial";
-        ctx.fillText(rules[i], 50, 70 + i * 24);
-    }
-    ctx.textAlign = "center";
-
-}
-
-
-
-
-// Renders the rules.
-function renderSurveyConfirm(deltaTime) {
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Background
-    ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Title
-    ctx.fillStyle = "#fff";
-    ctx.font = "40px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Survey", canvas.width / 2, 40);
-
-
-    // Confirmation text
-    const rules = [
-        "Are you sure you want to proceed to the survey?",
-        "Once confirmed, your gameplay data will be saved,",
-        "and your account will be locked from further play.",
-        "Press 'BACK' to return to the game and continue playing."
-    ];
-
-    // Buttons
-    for (let button of buttons) {
-        if (button.id === gameState && button.text === "CONFIRM") {
-            ctx.font = "50px Arial";
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
-
-        } else if (button.id === gameState) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#4BB";
-            ctx.fillRect(button.x, button.y, button.width, button.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(button.x, button.y, button.width, button.height);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
-        }
-    }
-
-    for (let i = 0; i < rules.length; i++) {
-        ctx.font = "20px Arial";
-        ctx.fillText(rules[i], canvas.width / 2, 90 + i * 24);
-    }
-    ctx.textAlign = "center";
-
 }
 
 // Renders the menu.
@@ -465,9 +296,6 @@ function renderMenu(deltaTime) {
             ctx.strokeStyle = "#fff";
             ctx.strokeRect(button.x, button.y, button.width, button.height);
             ctx.fillStyle = "#fff";
-            if (gameData.acceptedRules) {
-                button.text = "CONTINUE";
-            }
             ctx.fillText(button.text, button.x + button.width / 2, button.y + 55);
         } else if (button.id === gameState) {
             ctx.font = "20px Arial";
@@ -551,8 +379,6 @@ function renderLevelComplete() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === "level_completed") {
-            if (button.text === "Survey" && gameData.currentLevel < 2)
-                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -567,17 +393,10 @@ function render(deltaTime) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (gameData.clickedSurvey) {
-        gameState = "game_completed";
-        renderGameCompleted();
-    } else if (gameState === "menu") {
+    if (gameState === "menu") {
         renderMenu(deltaTime);
-    } else if (gameState === "rules") {
-        renderRules();
     } else if (gameState === "game_completed") {
         renderGameCompleted();
-    } else if (gameState === "survey_confirm") {
-        renderSurveyConfirm();
     } else if (gameState === "settings") {
         renderSettings();
     } else if (gameState === "level_completed") {

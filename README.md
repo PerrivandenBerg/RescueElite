@@ -4,7 +4,9 @@ In this project, we create a website version of the game **Fort Apocalypse** of 
 
 ## Features
 This game includes several features:
-- A list of pre-made levels acting as a tutorial.
+- One pre-made tutorial level.
+- A number of AI generated levels.
+- An import function in the settings menu.
 - A level editor allowing players to create, share, and export custom levels.
 
 ### Goal: Replayability
@@ -14,9 +16,9 @@ We aim to make the game highly replayable by combining procedural content genera
 This game is part of my thesis project on replayability and AI-driven level design. Using Monte Carlo Tree Search (MCTS), we generate levels that can be played via the import function, showcasing the AI’s ability to create engaging and varied experiences.
 
 ## How to Play?
-- Use arrow keys to move the chopper.
-- Press colored buttons to open respective colored doors.
-- Shoot enemies or breakable blocks using 'X' or 'Z'.
+- Use arrow keys to move the chopper (or use the joystick on mobile).
+- Shoot enemies or breakable blocks using 'X' or 'Z' (or the "SHOOT" button on mobile).
+- Press the colored buttons to open respective colored doors.
 - Avoid or fight enemies.
 - Rescue the people and reach the exit to complete the level.
 
@@ -45,4 +47,9 @@ Only do this on a private network.
 Visual Studio Code has an option to run a html-file in a live server. In order to do so, open the project in VSCode and open the `public/` directory. Right click on the `index.html` file and click on the first option: `Open with Live Server`. This works similar for the level editor which is located in the `public_editor/` directory.
 
 ## Where to Play?
-Coming soon..
+You can play a version of this game on: rescueelite.onrender.com.
+
+## Original Game
+This game is based on Fort Apocalypse (by Steve Hales). A public version can be found at: https://github.com/heyigor/FortApocalypse
+
+There have been modifications made to the original game making it different. This game is only created for research purposes.

@@ -5,9 +5,8 @@ function generateSessionId() {
     return 'sess-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 }
 
-let gameData = loadFromLocal();
-
-if (!gameData) {
+// Resets the data of the player.
+function resetData() {
     gameData = {
         sessionId: generateSessionId(),  // Unique per session
         startedAt: Date.now(),
@@ -19,6 +18,14 @@ if (!gameData) {
         currentLevel: 0,
         levels: []
     };
+    gameState = "menu";
+    lastState = "menu";
+}
+
+let gameData = loadFromLocal();
+
+if (!gameData) {
+    resetData();
 } else {
     console.log("Resuming previous session:", gameData.sessionId);
 }

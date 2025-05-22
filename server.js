@@ -24,7 +24,7 @@ app.post('/save-game-data', (req, res) => {
     });
 });
 
-const PORT = 4000;
+const PORT = 3000;
 const HOST = '0.0.0.0';
 
 // Load the files in the folder.
