@@ -23,7 +23,7 @@ class Overlay {
     draw(ctx) {
         ctx.save();
 
-        ctx.scale(2.5, 2.5); // Apply zoom
+        ctx.scale(2.5, 2.5); // Apply zoom.
 
         // Draw the hearts in the top-left corner.
         let sprite_heart = load_sprite("life.png");

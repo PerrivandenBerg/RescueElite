@@ -45,14 +45,12 @@ class World {
         // Screen overlay.
         this.overlay = new Overlay(this, this.chopper);
 
-
         // Zoom in and out using the mouse wheel.
-        // canvas.addEventListener("wheel", (event) => {
-        //     this.camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
-        //     this.camera.zoom = Math.max(0.5, Math.min(3, this.camera.zoom)); // Clamp zoom level
-        //     this.clamp_camera()
-        // });
-
+        canvas.addEventListener("wheel", (event) => {
+            this.camera.zoom *= event.deltaY > 0 ? 0.9 : 1.1; // Scroll to zoom
+            this.camera.zoom = Math.max(0.5, Math.min(3, this.camera.zoom)); // Clamp zoom level
+            this.clamp_camera()
+        });
     }
 
 

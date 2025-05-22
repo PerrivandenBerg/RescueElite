@@ -126,14 +126,24 @@ document.addEventListener("keydown", (event) => {
         gameState = "paused"; // Pause the game
     } else if (gameState === "paused" && event.key === "Escape") {
         gameState = "game"; // Pause the game
+    } else if (gameState === "game" && event.key === "c") { // Capture the level.
+        makeLevelCapture();
     }
 });
 
-
 const buttons = [
-    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameData.currentLevel -= 1; next_level() } },
+    { id: "menu", text: "START", x: canvas.width / 2 - 150, y: canvas.height - 85, width: 300, height: 75, action: () => { gameState = "level_selector" } },
     { id: "menu", text: "Fullscreen", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => toggleFullScreen() },
     { id: "menu", text: "Settings", x: canvas.width - 220, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "settings" },
+    { id: "level_selector", text: "1", x: canvas.width / 2 - 200, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 0; next_level() } },
+    { id: "level_selector", text: "2", x: canvas.width / 2 - 140, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 1; next_level() } },
+    { id: "level_selector", text: "3", x: canvas.width / 2 - 80, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 2; next_level() } },
+    { id: "level_selector", text: "4", x: canvas.width / 2 - 20, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 3; next_level() } },
+    { id: "level_selector", text: "5", x: canvas.width / 2 + 40, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 4; next_level() } },
+    { id: "level_selector", text: "6", x: canvas.width / 2 + 100, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 5; next_level() } },
+    { id: "level_selector", text: "7", x: canvas.width / 2 + 160, y: canvas.height / 2 + 60, width: 40, height: 40, action: () => { gameData.currentLevel = 6; next_level() } },
+    { id: "level_selector", text: "tutorial", x: canvas.width / 2 - 60, y: canvas.height / 2, width: 120, height: 40, action: () => { gameData.currentLevel = -1; next_level() } },
+    { id: "level_selector", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "level_completed", text: "Next Level", x: 310, y: 220, width: 200, height: 50, action: () => next_level() },
     { id: "level_completed", text: "Menu", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => { next_level(); gameState = "menu" } },
     { id: "paused", text: "Restart Level", x: canvas.width / 2 - 75, y: 150, width: 150, height: 50, action: () => { recordDeath(world.chopper.x, world.chopper.y, true); world.reset_level(); gameState = "game"; } },
@@ -148,7 +158,6 @@ const buttons = [
     { id: "settings", text: "Back", x: canvas.width - 110, y: canvas.height - 60, width: 100, height: 50, action: () => gameState = "menu" },
     { id: "game_completed", text: "Menu", x: canvas.width / 2 - 75, y: 220, width: 150, height: 50, action: () => { gameState = "menu", endLevel(); } },
 ];
-
 
 // Handle mouse clicks for menu buttons.
 function handleInput(x, y) {
@@ -188,6 +197,48 @@ canvas.addEventListener("touchstart", (event) => {
     y = y / rect.height * canvas.height;
     handleInput(x, y);
 }, { passive: true });
+
+// Takes a full screen picture of the level grid.
+function makeLevelCapture() {
+    const levelX = world.level_x1;
+    const levelY = world.level_y1;
+    const levelWidth = world.level_x2 - world.level_x1;
+    const levelHeight = world.level_y2 - world.level_y1;
+
+    // High DPI factor.
+    const dpiScale = 4;
+
+    // Create an offscreen canvas.
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = levelWidth * dpiScale;
+    exportCanvas.height = levelHeight * dpiScale;
+    const exportCtx = exportCanvas.getContext("2d");
+
+    exportCtx.imageSmoothingEnabled = false;
+    exportCtx.scale(dpiScale, dpiScale);
+    exportCtx.translate(-levelX, -levelY);
+
+    // Draw all objects.
+    exportCtx.fillStyle = colorData['background'];
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    world.wobjs.sort((a, b) => a.z - b.z);
+    world.wobjs.forEach(obj => {
+        if (typeof obj.draw === "function") {
+            obj.draw(exportCtx);
+        }
+    });
+
+    // Save the image.
+    exportCanvas.toBlob(function (blob) {
+        const link = document.createElement("a");
+        link.download = "level_screenshot.png";
+        link.href = URL.createObjectURL(blob);
+        link.click();
+    }, "image/png");
+}
+
+
 
 function renderPaused() {
 
@@ -320,6 +371,34 @@ function renderMenu(deltaTime) {
 }
 
 
+// Renders the level selector.
+function renderLevelSelector() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Level Selector", canvas.width / 2, 40);
+
+    // Buttons
+    for (let button of buttons) {
+        if (button.id === gameState) {
+            ctx.fillStyle = "#4BB";
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + 32);
+        }
+    }
+}
+
+
 // Renders the settings menu.
 function renderSettings() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -335,8 +414,6 @@ function renderSettings() {
     ctx.font = "20px Arial";
     for (let button of buttons) {
         if (button.id === gameState) {
-            if (button.id === "Upload Level" && isMobile())
-                continue;
             ctx.fillStyle = "#4BB";
             ctx.fillRect(button.x, button.y, button.width, button.height);
             ctx.strokeStyle = "#fff";
@@ -395,6 +472,8 @@ function render(deltaTime) {
 
     if (gameState === "menu") {
         renderMenu(deltaTime);
+    } else if (gameState === "level_selector") {
+        renderLevelSelector();
     } else if (gameState === "game_completed") {
         renderGameCompleted();
     } else if (gameState === "settings") {
